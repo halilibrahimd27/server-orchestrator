@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+code {
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: rgb(30, 41, 59);
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgb(71, 85, 105), rgb(51, 65, 85));
+  border-radius: 8px;
+  border: 2px solid rgb(30, 41, 59);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgb(100, 116, 139), rgb(71, 85, 105));
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(71, 85, 105) rgb(30, 41, 59);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.slide-in-from-bottom-2 {
+  animation: slide-in-from-bottom 0.3s ease-out;
+}
+
+/* Selection styling */
+::selection {
+  background-color: rgba(99, 102, 241, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: rgba(99, 102, 241, 0.3);
+  color: white;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
