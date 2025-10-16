@@ -12,14 +12,6 @@ Web tabanlı sunucu yönetim ve otomasyon aracı. 50+ sunucunuzda aynı anda kom
 - **Güvenli Bağlantı**: SSH üzerinden şifreli bağlantı
 - **Şifreleme**: Sunucu şifreleri AES-256 ile şifrelenir
 
-### 🆕 Yeni Özellikler (v2.0)
-- **MariaDB/MySQL Desteği**: Kalıcı ve güvenilir veritabanı
-- **Tam Türkçe Arayüz**: Türkçe karakterler tam destek (ğ,ü,ş,ı,ö,ç)
-- **Modern UI**: Yenilenmiş, daha kullanıcı dostu arayüz
-- **Yedekleme/Geri Yükleme**: Yapılandırmalarınızı dışa/içe aktarın
-- **İstatistikler**: Detaylı kullanım istatistikleri
-- **UTF-8 Desteği**: Tüm Türkçe karakterler doğru çalışır
-
 ## 📦 Kurulum
 
 ### Docker ile Kurulumu
@@ -210,24 +202,12 @@ pm2 restart myapp
 apt update && apt upgrade -y && apt autoremove -y
 ```
 
-## 📝 TODO
-
-- [ ] JWT Authentication ekle
-- [ ] Sunucu grupları (prod, dev, staging)
-- [ ] Scheduled tasks (cron)
-- [ ] Rollback özelliği
-- [ ] Docker support
-- [ ] Ansible playbook import
-- [ ] Email notifications
-
 ## 🤝 Katkıda Bulunma
 
 Pull request'ler kabul edilir! Büyük değişiklikler için önce issue açın.
 
-## 📄 Lisans
-
-MIT
-
----
-
-**Not**: Production'da kullanmadan önce güvenlik önlemlerini (JWT, rate limiting, SSL) eklemeyi unutmayın!
+1. Fork edin
+2. Feature branch oluşturun (`git checkout -b feature/harika-ozellik`)
+3. Commit edin (`git commit -m 'Harika özellik eklendi'`)
+4. Push edin (`git push origin feature/harika-ozellik`)
+5. Pull Request açın
