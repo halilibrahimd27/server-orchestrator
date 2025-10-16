@@ -89,6 +89,16 @@ export default function App() {
     }
   };
 
+  const handleEditServer = async (id, serverData) => {
+    try {
+      await serverAPI.update(id, serverData);
+      loadServers();
+    } catch (error) {
+      alert('Sunucu güncellenirken hata oluştu: ' + error.message);
+      throw error;
+    }
+  };
+
   const handleDeleteServer = async (id) => {
     try {
       await serverAPI.delete(id);
@@ -118,6 +128,16 @@ export default function App() {
       loadTasks();
     } catch (error) {
       alert('Görev eklenirken hata oluştu: ' + error.message);
+      throw error;
+    }
+  };
+
+  const handleEditTask = async (id, taskData) => {
+    try {
+      await taskAPI.update(id, taskData);
+      loadTasks();
+    } catch (error) {
+      alert('Görev güncellenirken hata oluştu: ' + error.message);
       throw error;
     }
   };
@@ -195,6 +215,7 @@ export default function App() {
               selectedServers={selectedServers}
               onToggleServer={handleToggleServer}
               onAddServer={handleAddServer}
+              onEditServer={handleEditServer}
               onDeleteServer={handleDeleteServer}
               onTestConnection={handleTestConnection}
             />
@@ -207,6 +228,7 @@ export default function App() {
               selectedTask={selectedTask}
               onToggleTask={handleToggleTask}
               onAddTask={handleAddTask}
+              onEditTask={handleEditTask}
               onDeleteTask={handleDeleteTask}
               onExecuteTask={handleExecuteTask}
               selectedServersCount={selectedServers.length}

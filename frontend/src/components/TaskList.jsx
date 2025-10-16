@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Settings, Plus, X, Play, Trash2, Code, FileText } from 'lucide-react';
+import { Settings, Plus, X, Play, Trash2, Code, FileText, Edit2 } from 'lucide-react';
 
-const TaskCard = ({ task, isSelected, onToggle, onDelete, onExecute }) => {
+const TaskCard = ({ task, isSelected, onToggle, onDelete, onExecute, onEdit }) => {
   return (
     <div
       onClick={() => onToggle(task.id)}
@@ -55,8 +55,18 @@ const TaskCard = ({ task, isSelected, onToggle, onDelete, onExecute }) => {
         </div>
       </div>
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700/50">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(task);
+          }}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-md transition-colors text-sm"
+        >
+          <Edit2 className="w-4 h-4" />
+          <span>Düzenle</span>
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -74,8 +84,8 @@ const TaskCard = ({ task, isSelected, onToggle, onDelete, onExecute }) => {
   );
 };
 
-const AddTaskForm = ({ onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
+const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) => {
+  const [formData, setFormData] = useState(initialData || {
     name: '',
     description: '',
     command: ''
@@ -127,7 +137,9 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
   return (
     <div className="bg-slate-900/95 backdrop-blur-sm p-6 rounded-xl border border-slate-700 space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">Yeni Görev Ekle</h3>
+        <h3 className="text-lg font-semibold text-white">
+          {isEdit ? 'Görevi Düzenle' : 'Yeni Görev Ekle'}
+        </h3>
         <button
           onClick={onCancel}
           className="p-1 hover:bg-slate-800 rounded transition-colors"
@@ -136,33 +148,35 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
         </button>
       </div>
 
-      {/* Quick Templates */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowTemplates(!showTemplates)}
-          className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-left flex items-center justify-between transition-colors"
-        >
-          <span className="text-sm text-slate-300">Hızlı Şablonlar</span>
-          <FileText className="w-4 h-4 text-slate-400" />
-        </button>
+      {/* Quick Templates - sadece yeni görev eklerken göster */}
+      {!isEdit && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-left flex items-center justify-between transition-colors"
+          >
+            <span className="text-sm text-slate-300">Hızlı Şablonlar</span>
+            <FileText className="w-4 h-4 text-slate-400" />
+          </button>
 
-        {showTemplates && (
-          <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
-            {quickTemplates.map((template, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => applyTemplate(template)}
-                className="w-full p-3 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-left transition-colors"
-              >
-                <div className="font-medium text-sm text-white mb-1">{template.name}</div>
-                <div className="text-xs text-slate-400 truncate">{template.description}</div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+          {showTemplates && (
+            <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+              {quickTemplates.map((template, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => applyTemplate(template)}
+                  className="w-full p-3 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-left transition-colors"
+                >
+                  <div className="font-medium text-sm text-white mb-1">{template.name}</div>
+                  <div className="text-xs text-slate-400 truncate">{template.description}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -212,7 +226,7 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
             type="submit"
             className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-purple-500/30"
           >
-            Görev Ekle
+            {isEdit ? 'Güncelle' : 'Görev Ekle'}
           </button>
           <button
             type="button"
@@ -234,12 +248,24 @@ export default function TaskList({
   onAddTask,
   onDeleteTask,
   onExecuteTask,
+  onEditTask,
   selectedServersCount
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const handleAddTask = async (taskData) => {
     await onAddTask(taskData);
+    setShowAddForm(false);
+  };
+
+  const handleEditTask = async (taskData) => {
+    await onEditTask(editingTask.id, taskData);
+    setEditingTask(null);
+  };
+
+  const handleOpenEdit = (task) => {
+    setEditingTask(task);
     setShowAddForm(false);
   };
 
@@ -272,12 +298,24 @@ export default function TaskList({
         </button>
       </div>
 
-      {/* Add Task Form */}
+      {/* Add/Edit Task Form */}
       {showAddForm && (
         <div className="mb-4">
-          <AddTaskForm
+          <TaskForm
             onSubmit={handleAddTask}
             onCancel={() => setShowAddForm(false)}
+            isEdit={false}
+          />
+        </div>
+      )}
+
+      {editingTask && (
+        <div className="mb-4">
+          <TaskForm
+            onSubmit={handleEditTask}
+            onCancel={() => setEditingTask(null)}
+            initialData={editingTask}
+            isEdit={true}
           />
         </div>
       )}
@@ -309,6 +347,7 @@ export default function TaskList({
               onToggle={onToggleTask}
               onDelete={onDeleteTask}
               onExecute={onExecuteTask}
+              onEdit={handleOpenEdit}
             />
           ))
         )}

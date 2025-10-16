@@ -9,8 +9,17 @@ async function executeOnServer(server, command) {
 
     conn.on('ready', () => {
       console.log(`✅ SSH connection established to ${server.host}`);
-      
-      conn.exec(command, (err, stream) => {
+
+      // Eğer sudo_password varsa ve komut sudo ile başlamıyorsa, sudo ekle
+      let finalCommand = command;
+      const sudoPassword = server.sudo_password ? decrypt(server.sudo_password) : null;
+
+      if (sudoPassword && !command.trim().startsWith('sudo')) {
+        // Echo ile sudo şifresini pipe et
+        finalCommand = `echo '${sudoPassword}' | sudo -S ${command}`;
+      }
+
+      conn.exec(finalCommand, (err, stream) => {
         if (err) {
           conn.end();
           return reject(new Error(`Execution error: ${err.message}`));

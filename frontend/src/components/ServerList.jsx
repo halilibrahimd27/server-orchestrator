@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Server, Trash2, CheckCircle, XCircle, Wifi, WifiOff, AlertCircle, Plus, X } from 'lucide-react';
+import { Server, Trash2, CheckCircle, XCircle, Wifi, WifiOff, AlertCircle, Plus, X, Edit2 } from 'lucide-react';
 
-const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
+const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest, onEdit }) => {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
 
@@ -99,6 +99,17 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
+            onEdit(server);
+          }}
+          className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-md transition-colors"
+          title="Sunucuyu Düzenle"
+        >
+          <Edit2 className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
             if (confirm(`${server.name} sunucusunu silmek istediğinize emin misiniz?`)) {
               onDelete(server.id);
             }
@@ -113,17 +124,18 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
   );
 };
 
-const AddServerForm = ({ onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
+const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) => {
+  const [formData, setFormData] = useState(initialData || {
     name: '',
     host: '',
     port: 22,
     username: '',
     password: '',
-    private_key: ''
+    private_key: '',
+    sudo_password: ''
   });
 
-  const [authType, setAuthType] = useState('password');
+  const [authType, setAuthType] = useState(initialData?.password ? 'password' : initialData?.private_key ? 'key' : 'password');
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -132,7 +144,8 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
       return;
     }
 
-    if (authType === 'password' && !formData.password) {
+    // Yeni sunucu eklerken şifre kontrolü yap
+    if (!isEdit && authType === 'password' && !formData.password) {
       alert('Şifre zorunludur!');
       return;
     }
@@ -143,7 +156,9 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
   return (
     <div className="bg-slate-900/95 backdrop-blur-sm p-6 rounded-xl border border-slate-700 space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">Yeni Sunucu Ekle</h3>
+        <h3 className="text-lg font-semibold text-white">
+          {isEdit ? 'Sunucu Düzenle' : 'Yeni Sunucu Ekle'}
+        </h3>
         <button
           onClick={onCancel}
           className="p-1 hover:bg-slate-800 rounded transition-colors"
@@ -240,15 +255,20 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
         {authType === 'password' ? (
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              Şifre *
+              Şifre {!isEdit && '*'}
             </label>
             <input
               type="password"
-              value={formData.password}
+              value={formData.password || ''}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
-              placeholder="••••••••"
+              placeholder={isEdit ? "Değiştirmek için yeni şifre girin" : "••••••••"}
               className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
             />
+            {isEdit && (
+              <p className="text-xs text-slate-500 mt-1">
+                Boş bırakırsanız mevcut şifre korunur
+              </p>
+            )}
           </div>
         ) : (
           <div>
@@ -256,21 +276,46 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
               SSH Private Key
             </label>
             <textarea
-              value={formData.private_key}
+              value={formData.private_key || ''}
               onChange={(e) => setFormData({...formData, private_key: e.target.value})}
-              placeholder="-----BEGIN RSA PRIVATE KEY-----&#10;..."
+              placeholder={isEdit ? "Değiştirmek için yeni key girin" : "-----BEGIN RSA PRIVATE KEY-----\n..."}
               rows={4}
               className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all font-mono text-sm resize-none"
             />
+            {isEdit && (
+              <p className="text-xs text-slate-500 mt-1">
+                Boş bırakırsanız mevcut key korunur
+              </p>
+            )}
           </div>
         )}
+
+        {/* Sudo Şifresi Alanı */}
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-2">
+            Sudo Şifresi (Opsiyonel)
+          </label>
+          <input
+            type="password"
+            value={formData.sudo_password || ''}
+            onChange={(e) => setFormData({...formData, sudo_password: e.target.value})}
+            placeholder={isEdit ? "Değiştirmek için yeni sudo şifre girin" : "Sudo için şifre"}
+            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            {isEdit
+              ? "Boş bırakırsanız mevcut sudo şifresi korunur. Komutlar sudo gerektiriyorsa bu alanı doldurun"
+              : "Eğer komutlar sudo gerektiriyorsa, bu alanı doldurun"
+            }
+          </p>
+        </div>
 
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-blue-500/30"
           >
-            Sunucu Ekle
+            {isEdit ? 'Güncelle' : 'Sunucu Ekle'}
           </button>
           <button
             type="button"
@@ -291,12 +336,24 @@ export default function ServerList({
   onToggleServer,
   onAddServer,
   onDeleteServer,
-  onTestConnection
+  onTestConnection,
+  onEditServer
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingServer, setEditingServer] = useState(null);
 
   const handleAddServer = async (serverData) => {
     await onAddServer(serverData);
+    setShowAddForm(false);
+  };
+
+  const handleEditServer = async (serverData) => {
+    await onEditServer(editingServer.id, serverData);
+    setEditingServer(null);
+  };
+
+  const handleOpenEdit = (server) => {
+    setEditingServer(server);
     setShowAddForm(false);
   };
 
@@ -353,12 +410,24 @@ export default function ServerList({
         </button>
       </div>
 
-      {/* Sunucu Ekleme Formu */}
+      {/* Sunucu Ekleme/Düzenleme Formu */}
       {showAddForm && (
         <div className="mb-4">
-          <AddServerForm
+          <ServerForm
             onSubmit={handleAddServer}
             onCancel={() => setShowAddForm(false)}
+            isEdit={false}
+          />
+        </div>
+      )}
+
+      {editingServer && (
+        <div className="mb-4">
+          <ServerForm
+            onSubmit={handleEditServer}
+            onCancel={() => setEditingServer(null)}
+            initialData={editingServer}
+            isEdit={true}
           />
         </div>
       )}
@@ -390,6 +459,7 @@ export default function ServerList({
               onToggle={onToggleServer}
               onDelete={onDeleteServer}
               onTest={onTestConnection}
+              onEdit={handleOpenEdit}
             />
           ))
         )}

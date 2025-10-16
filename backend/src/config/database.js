@@ -114,6 +114,7 @@ async function initDatabase() {
         username VARCHAR(255) NOT NULL,
         password TEXT,
         private_key TEXT,
+        sudo_password TEXT,
         status VARCHAR(50) DEFAULT 'idle',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -160,6 +161,7 @@ async function initDatabase() {
             username TEXT NOT NULL,
             password TEXT,
             private_key TEXT,
+            sudo_password TEXT,
             status TEXT DEFAULT 'idle',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -198,8 +200,17 @@ async function initDatabase() {
           if (err) {
             reject(err);
           } else {
-            console.log('✅ SQLite tabloları oluşturuldu');
-            resolve();
+            // Mevcut tabloya sudo_password kolonunu ekle (eğer yoksa)
+            db.run(`
+              ALTER TABLE servers ADD COLUMN sudo_password TEXT
+            `, (alterErr) => {
+              // Hata olursa (kolon zaten varsa) görmezden gel
+              if (alterErr && !alterErr.message.includes('duplicate column')) {
+                console.log('⚠️  sudo_password kolonu eklenirken hata (muhtemelen zaten var):', alterErr.message);
+              }
+              console.log('✅ SQLite tabloları oluşturuldu');
+              resolve();
+            });
           }
         });
       });

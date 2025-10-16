@@ -1,5 +1,5 @@
 // Server model schema
-// Bu dosya veritaban1 _emas1 için referans salar
+// Bu dosya veritaban1 _emas1 iï¿½in referans salar
 
 const ServerSchema = {
   tableName: 'servers',
@@ -11,6 +11,7 @@ const ServerSchema = {
     username: 'TEXT NOT NULL',
     password: 'TEXT',
     private_key: 'TEXT',
+    sudo_password: 'TEXT',
     status: 'TEXT DEFAULT "unknown"',
     created_at: 'DATETIME DEFAULT CURRENT_TIMESTAMP',
     updated_at: 'DATETIME DEFAULT CURRENT_TIMESTAMP'

@@ -36,7 +36,7 @@ exports.getServerById = async (req, res) => {
 
 // Yeni sunucu oluştur
 exports.createServer = async (req, res) => {
-  const { name, host, port, username, password, private_key } = req.body;
+  const { name, host, port, username, password, private_key, sudo_password } = req.body;
 
   if (!name || !host || !username) {
     return res.status(400).json({ error: 'Ad, host ve kullanıcı adı zorunludur' });
@@ -46,11 +46,12 @@ exports.createServer = async (req, res) => {
     // Hassas verileri şifrele
     const encryptedPassword = password ? encrypt(password) : null;
     const encryptedPrivateKey = private_key ? encrypt(private_key) : null;
+    const encryptedSudoPassword = sudo_password ? encrypt(sudo_password) : null;
 
     const result = await query(
-      `INSERT INTO servers (name, host, port, username, password, private_key)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [name, host, port || 22, username, encryptedPassword, encryptedPrivateKey]
+      `INSERT INTO servers (name, host, port, username, password, private_key, sudo_password)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [name, host, port || 22, username, encryptedPassword, encryptedPrivateKey, encryptedSudoPassword]
     );
 
     res.status(201).json({
@@ -68,7 +69,7 @@ exports.createServer = async (req, res) => {
 // Sunucu güncelle
 exports.updateServer = async (req, res) => {
   const { id } = req.params;
-  const { name, host, port, username, password, private_key } = req.body;
+  const { name, host, port, username, password, private_key, sudo_password } = req.body;
 
   try {
     // Dinamik güncelleme sorgusu oluştur
@@ -81,6 +82,7 @@ exports.updateServer = async (req, res) => {
     if (username) { updates.push('username = ?'); values.push(username); }
     if (password) { updates.push('password = ?'); values.push(encrypt(password)); }
     if (private_key) { updates.push('private_key = ?'); values.push(encrypt(private_key)); }
+    if (sudo_password) { updates.push('sudo_password = ?'); values.push(encrypt(sudo_password)); }
 
     if (updates.length === 0) {
       return res.status(400).json({ error: 'Güncellenecek alan yok' });
