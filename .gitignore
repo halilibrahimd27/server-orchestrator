@@ -40,3 +40,5 @@ coverage/
 *.pid
 *.seed
 *.pid.lock
+
+.claude/

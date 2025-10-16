@@ -15,8 +15,10 @@ async function executeOnServer(server, command) {
       const sudoPassword = server.sudo_password ? decrypt(server.sudo_password) : null;
 
       if (sudoPassword && !command.trim().startsWith('sudo')) {
-        // Echo ile sudo şifresini pipe et
-        finalCommand = `echo '${sudoPassword}' | sudo -S ${command}`;
+        // Güvenli escape için şifreyi değişkene at ve printf kullan
+        // Bu yöntem özel karakterleri (', ", $, `, \, vb.) güvenli şekilde handle eder
+        const escapedPassword = sudoPassword.replace(/'/g, "'\\''"); // Single quote escape
+        finalCommand = `printf '%s\\n' '${escapedPassword}' | sudo -S -p '' bash -c "${command.replace(/"/g, '\\"')}"`;
       }
 
       conn.exec(finalCommand, (err, stream) => {
@@ -25,13 +27,21 @@ async function executeOnServer(server, command) {
           return reject(new Error(`Execution error: ${err.message}`));
         }
 
-        stream.on('close', (code, signal) => {
+        let promptHandled = false;
+
+        stream.on('close', (code) => {
           conn.end();
-          
+
+          // Sudo şifre promptunu output'tan temizle
+          if (sudoPassword) {
+            output = output.replace(/\[sudo\] password for .*?:\s*/g, '');
+            errorOutput = errorOutput.replace(/\[sudo\] password for .*?:\s*/g, '');
+          }
+
           if (code === 0) {
             resolve({
               success: true,
-              output: output,
+              output: output.trim(),
               exitCode: code
             });
           } else {
@@ -40,26 +50,39 @@ async function executeOnServer(server, command) {
         });
 
         stream.on('data', (data) => {
-          output += data.toString();
-          
+          const dataStr = data.toString();
+          output += dataStr;
+
+          // İlk sudo promptunu broadcast etme
+          if (!promptHandled && sudoPassword && dataStr.includes('password')) {
+            promptHandled = true;
+            return;
+          }
+
           // Real-time log broadcast
           if (global.broadcastLog) {
             global.broadcastLog({
               type: 'output',
               server: server.name,
-              data: data.toString()
+              data: dataStr
             });
           }
         });
 
         stream.stderr.on('data', (data) => {
-          errorOutput += data.toString();
-          
+          const dataStr = data.toString();
+          errorOutput += dataStr;
+
+          // Sudo prompt hatalarını ayıkla
+          if (sudoPassword && (dataStr.includes('sudo:') || dataStr.includes('password'))) {
+            return;
+          }
+
           if (global.broadcastLog) {
             global.broadcastLog({
               type: 'error',
               server: server.name,
-              data: data.toString()
+              data: dataStr
             });
           }
         });
