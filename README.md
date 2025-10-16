@@ -17,7 +17,7 @@ Web tabanlı sunucu yönetim ve otomasyon aracı. 50+ sunucunuzda aynı anda kom
 ### Docker ile Kurulumu
 
 ```bash
-# Windows için
+# Windows için(İlk Önce Docker Desktop'ınızı açın.)
 .\start.bat
 
 # Linux/Mac
