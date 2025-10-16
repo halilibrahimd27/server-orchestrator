@@ -122,6 +122,22 @@ export const groupAPI = {
   getServers: async (groupId) => {
     const res = await fetch(`${API_URL}/groups/${groupId}/servers`);
     return res.json();
+  },
+
+  addMember: async (groupId, serverId) => {
+    const res = await fetch(`${API_URL}/groups/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, serverId })
+    });
+    return res.json();
+  },
+
+  removeMember: async (groupId, serverId) => {
+    const res = await fetch(`${API_URL}/groups/${groupId}/members/${serverId}`, {
+      method: 'DELETE'
+    });
+    return res.json();
   }
 };
 

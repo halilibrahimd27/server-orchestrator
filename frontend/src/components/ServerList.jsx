@@ -124,7 +124,7 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest, onEdit }) 
   );
 };
 
-const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) => {
+const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, groups = [] }) => {
   const [formData, setFormData] = useState(initialData || {
     name: '',
     host: '',
@@ -135,6 +135,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) 
     sudo_password: ''
   });
 
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [authType, setAuthType] = useState(initialData?.password ? 'password' : initialData?.private_key ? 'key' : 'password');
 
   const handleSubmit = (e) => {
@@ -150,7 +151,15 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) 
       return;
     }
 
-    onSubmit(formData);
+    onSubmit(formData, selectedGroups);
+  };
+
+  const toggleGroup = (groupId) => {
+    setSelectedGroups(prev =>
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
   };
 
   return (
@@ -310,6 +319,38 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) 
           </p>
         </div>
 
+        {/* Grup Seçimi */}
+        {groups.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Gruplar (Opsiyonel)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {groups.map(group => (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                    selectedGroups.includes(group.id)
+                      ? 'bg-blue-500/20 border-2 border-blue-500'
+                      : 'bg-slate-800 border-2 border-slate-600 hover:border-slate-500'
+                  }`}
+                >
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: group.color }}
+                  />
+                  <span className="text-sm">{group.name}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              Sunucuyu bir veya daha fazla gruba ekleyebilirsiniz
+            </p>
+          </div>
+        )}
+
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
@@ -337,18 +378,20 @@ export default function ServerList({
   onAddServer,
   onDeleteServer,
   onTestConnection,
-  onEditServer
+  onEditServer,
+  groups = []
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingServer, setEditingServer] = useState(null);
+  const [filterGroupId, setFilterGroupId] = useState(null);
 
-  const handleAddServer = async (serverData) => {
-    await onAddServer(serverData);
+  const handleAddServer = async (serverData, selectedGroups) => {
+    await onAddServer(serverData, selectedGroups);
     setShowAddForm(false);
   };
 
-  const handleEditServer = async (serverData) => {
-    await onEditServer(editingServer.id, serverData);
+  const handleEditServer = async (serverData, selectedGroups) => {
+    await onEditServer(editingServer.id, serverData, selectedGroups);
     setEditingServer(null);
   };
 
@@ -364,6 +407,11 @@ export default function ServerList({
   const handleDeselectAll = () => {
     onToggleServer('none', []);
   };
+
+  // Filter servers by group if a group is selected
+  const filteredServers = filterGroupId
+    ? servers.filter(server => server.groups && server.groups.some(g => g.id === filterGroupId))
+    : servers;
 
   return (
     <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700 h-full flex flex-col">
@@ -410,6 +458,44 @@ export default function ServerList({
         </button>
       </div>
 
+      {/* Grup Filtreleme */}
+      {groups.length > 0 && (
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-slate-400 mb-2">
+            Gruba Göre Filtrele
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setFilterGroupId(null)}
+              className={`text-xs px-3 py-2 rounded-lg transition-all ${
+                filterGroupId === null
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              Tümü ({servers.length})
+            </button>
+            {groups.map(group => (
+              <button
+                key={group.id}
+                onClick={() => setFilterGroupId(group.id)}
+                className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-all ${
+                  filterGroupId === group.id
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-slate-700/50 hover:bg-slate-700 text-slate-300'
+                }`}
+              >
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: group.color }}
+                />
+                {group.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Sunucu Ekleme/Düzenleme Formu */}
       {showAddForm && (
         <div className="mb-4">
@@ -417,6 +503,7 @@ export default function ServerList({
             onSubmit={handleAddServer}
             onCancel={() => setShowAddForm(false)}
             isEdit={false}
+            groups={groups}
           />
         </div>
       )}
@@ -428,6 +515,7 @@ export default function ServerList({
             onCancel={() => setEditingServer(null)}
             initialData={editingServer}
             isEdit={true}
+            groups={groups}
           />
         </div>
       )}
@@ -450,8 +538,24 @@ export default function ServerList({
               İlk Sunucuyu Ekle
             </button>
           </div>
+        ) : filteredServers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center py-12">
+            <div className="p-4 bg-slate-700/30 rounded-full mb-4">
+              <Server className="w-12 h-12 text-slate-600" />
+            </div>
+            <h3 className="text-lg font-medium text-slate-400 mb-2">Bu grupta sunucu yok</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Seçilen grupta henüz sunucu bulunmuyor
+            </p>
+            <button
+              onClick={() => setFilterGroupId(null)}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            >
+              Tüm Sunucuları Göster
+            </button>
+          </div>
         ) : (
-          servers.map(server => (
+          filteredServers.map(server => (
             <ServerCard
               key={server.id}
               server={server}

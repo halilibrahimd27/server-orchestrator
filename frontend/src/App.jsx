@@ -102,9 +102,22 @@ export default function App() {
     }
   };
 
-  const handleAddServer = async (serverData) => {
+  const handleAddServer = async (serverData, selectedGroups = []) => {
     try {
-      await serverAPI.create(serverData);
+      const result = await serverAPI.create(serverData);
+      const serverId = result.server?.id;
+
+      // Sunucu gruplarına ekle
+      if (serverId && selectedGroups.length > 0) {
+        for (const groupId of selectedGroups) {
+          try {
+            await groupAPI.addMember(groupId, serverId);
+          } catch (err) {
+            console.error(`Failed to add server to group ${groupId}:`, err);
+          }
+        }
+      }
+
       loadServers();
     } catch (error) {
       alert('Sunucu eklenirken hata oluştu: ' + error.message);
@@ -112,9 +125,21 @@ export default function App() {
     }
   };
 
-  const handleEditServer = async (id, serverData) => {
+  const handleEditServer = async (id, serverData, selectedGroups = []) => {
     try {
       await serverAPI.update(id, serverData);
+
+      // Sunucu gruplarını güncelle
+      if (selectedGroups.length > 0) {
+        for (const groupId of selectedGroups) {
+          try {
+            await groupAPI.addMember(groupId, id);
+          } catch (err) {
+            console.error(`Failed to add server to group ${groupId}:`, err);
+          }
+        }
+      }
+
       loadServers();
     } catch (error) {
       alert('Sunucu güncellenirken hata oluştu: ' + error.message);
@@ -280,6 +305,7 @@ export default function App() {
               onEditServer={handleEditServer}
               onDeleteServer={handleDeleteServer}
               onTestConnection={handleTestConnection}
+              groups={groups}
             />
           </div>
 

@@ -8,6 +8,19 @@ exports.getAllServers = async (req, res) => {
     const servers = await query(
       'SELECT id, name, host, port, username, status, created_at FROM servers'
     );
+
+    // Her sunucunun gruplarını ekle
+    for (let server of servers) {
+      const groups = await query(`
+        SELECT g.id, g.name, g.color
+        FROM server_groups g
+        INNER JOIN server_group_members sgm ON g.id = sgm.group_id
+        WHERE sgm.server_id = ?
+        ORDER BY g.name
+      `, [server.id]);
+      server.groups = groups;
+    }
+
     res.json({ servers });
   } catch (err) {
     res.status(500).json({ error: 'Sunucular yüklenirken hata oluştu: ' + err.message });
@@ -56,7 +69,13 @@ exports.createServer = async (req, res) => {
 
     res.status(201).json({
       message: 'Sunucu başarıyla oluşturuldu',
-      serverId: result.insertId
+      server: {
+        id: result.insertId,
+        name,
+        host,
+        port: port || 22,
+        username
+      }
     });
   } catch (err) {
     if (err.message.includes('UNIQUE') || err.message.includes('Duplicate')) {
