@@ -33,7 +33,7 @@ chmod +x start.sh
 ./start.sh
 ```
 
-### Gereksinimler
+### Manuel Kurulum Gereksinimler
 
 - Node.js 18+
 - npm veya yarn
