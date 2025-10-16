@@ -22,6 +22,17 @@ Web tabanlı sunucu yönetim ve otomasyon aracı. 50+ sunucunuzda aynı anda kom
 
 ## 📦 Kurulum
 
+### Docker ile Kurulumu
+
+```bash
+# Windows için
+.\start.bat
+
+# Linux/Mac
+chmod +x start.sh
+./start.sh
+```
+
 ### Gereksinimler
 
 - Node.js 18+
