@@ -6,11 +6,19 @@ Web tabanlı sunucu yönetim ve otomasyon aracı. 50+ sunucunuzda aynı anda kom
 
 ### 🎯 Temel Özellikler
 - **Çoklu Sunucu Yönetimi**: 50+ sunucuyu tek panelden yönetin
+- **Sunucu Grupları**: Sunucuları kategorilere ayırın (Production, Staging, Development vb.)
 - **Görev Kütüphanesi**: Sık kullanılan komutları görev olarak kaydedin ve tekrar kullanın
 - **Paralel Çalıştırma**: Tüm sunucularda aynı anda işlem yapın
 - **Canlı Log Takibi**: WebSocket ile gerçek zamanlı log izleme
 - **Güvenli Bağlantı**: SSH üzerinden şifreli bağlantı
 - **Şifreleme**: Sunucu şifreleri AES-256 ile şifrelenir
+- **Sudo Desteği**: Sudo yetkisi gerektiren komutlar için otomatik şifre gönderimi
+
+### 🆕 Yeni Özellikler (v2.0)
+- **⏰ Görev Zamanlayıcı**: Cron-like periyodik görev çalıştırma
+- **💓 Health Monitoring**: Sunucu sağlık durumu izleme (CPU, RAM, Disk)
+- **📊 Metrik Toplama**: Otomatik sunucu metrik toplama ve raporlama
+- **🔔 Uyarı Sistemi**: Kritik durumlarda otomatik uyarılar
 
 ## 📦 Kurulum
 
@@ -45,6 +53,9 @@ cp .env.example .env
 # .env dosyasını düzenle (önemli!)
 nano .env
 
+# Migration'ları çalıştır (Yeni tablolar için)
+npm run migrate
+
 # Backend'i başlat
 npm run dev
 ```
@@ -65,13 +76,18 @@ npm run dev
 
 ```env
 PORT=3000
-DB_PATH=./database.sqlite
+WS_PORT=8080
+DB_TYPE=sqlite
+DB_PATH=/data/database.sqlite
 JWT_SECRET=your-super-secret-jwt-key-change-this
 ENCRYPTION_KEY=your-32-character-encryption-key-here
-WS_PORT=8080
+HEALTH_CHECK_INTERVAL=5  # Dakika cinsinden
+SCHEDULER_ENABLED=true
 ```
 
-**ÖNEMLİ:** `ENCRYPTION_KEY` 32 karakter olmalı!
+**ÖNEMLİ:**
+- `ENCRYPTION_KEY` tam olarak 32 karakter olmalı!
+- `JWT_SECRET` minimum 32 karakter önerilir
 
 ## 🎯 Kullanım
 
@@ -109,6 +125,39 @@ PUT    /api/tasks/:id        # Görev güncelle
 DELETE /api/tasks/:id        # Görev sil
 POST   /api/tasks/execute    # Görevi çalıştır
 GET    /api/tasks/logs/all   # Execution logları
+```
+
+### Server Groups (Yeni!)
+
+```
+GET    /api/groups                      # Tüm grupları listele
+POST   /api/groups                      # Yeni grup oluştur
+PUT    /api/groups/:id                  # Grup güncelle
+DELETE /api/groups/:id                  # Grup sil
+POST   /api/groups/members              # Gruba sunucu ekle
+DELETE /api/groups/:groupId/members/:serverId  # Gruptan sunucu çıkar
+GET    /api/groups/:id/servers          # Grubun sunucularını listele
+GET    /api/groups/server/:serverId     # Sunucunun gruplarını listele
+```
+
+### Scheduled Tasks (Yeni!)
+
+```
+GET    /api/schedules           # Tüm zamanlanmış görevleri listele
+POST   /api/schedules           # Yeni zamanlanmış görev oluştur
+PUT    /api/schedules/:id       # Zamanlanmış görevi güncelle
+DELETE /api/schedules/:id       # Zamanlanmış görevi sil
+PATCH  /api/schedules/:id/toggle # Aktif/Pasif durumu değiştir
+```
+
+### Health Monitoring (Yeni!)
+
+```
+GET    /api/health/summary                # Genel sağlık özeti
+GET    /api/health/metrics                # Tüm sunucu metrikleri
+GET    /api/health/metrics/:serverId      # Belirli sunucu metrikleri
+GET    /api/health/metrics/:serverId/history # Metrik geçmişi
+POST   /api/health/collect/:serverId?     # Manuel metrik toplama
 ```
 
 ### Görev Çalıştırma

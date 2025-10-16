@@ -15,6 +15,14 @@ REM Start containers
 echo Building and starting containers...
 docker-compose up --build -d
 
+REM Wait for backend to be ready
+echo Waiting for backend to start...
+timeout /t 5 /nobreak >nul
+
+REM Run migrations
+echo Running database migrations...
+docker-compose exec -T backend npm run migrate
+
 echo.
 echo Server Orchestrator is running!
 echo.

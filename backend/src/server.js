@@ -6,6 +6,11 @@ const { initDatabase } = require('./config/database');
 const serverRoutes = require('./routes/serverRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const backupRoutes = require('./routes/backupRoutes');
+const groupRoutes = require('./routes/groupRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
+const healthRoutes = require('./routes/healthRoutes');
+const { startScheduler } = require('./services/scheduler');
+const { startHealthMonitoring } = require('./services/healthMonitor');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +31,9 @@ app.use((req, res, next) => {
 app.use('/api/servers', serverRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/backup', backupRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/schedules', scheduleRoutes);
+app.use('/api/health', healthRoutes);
 
 // Sağlık kontrolü
 app.get('/health', (req, res) => {
@@ -70,6 +78,14 @@ initDatabase().then(() => {
     console.log(`🚀 Sunucu çalışıyor: http://localhost:${PORT}`);
     console.log(`🔌 WebSocket çalışıyor: ws://localhost:${WS_PORT}`);
     console.log(`📊 Veritabanı: ${process.env.DB_TYPE || 'sqlite'}`);
+
+    // Scheduler'ı başlat
+    startScheduler();
+
+    // Health monitoring'i başlat (5 dakikada bir)
+    startHealthMonitoring(5);
+
+    console.log('✅ Tüm servisler başlatıldı');
   });
 }).catch((err) => {
   console.error('❌ Veritabanı başlatma hatası:', err);
