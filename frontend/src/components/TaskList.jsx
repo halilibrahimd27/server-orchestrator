@@ -60,7 +60,7 @@ const TaskCard = ({ task, isSelected, onToggle, onDelete, onExecute }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            if (confirm(`${task.name} gorevini silmek istediginize emin misiniz?`)) {
+            if (confirm(`${task.name} görevini silmek istediğinize emin misiniz?`)) {
               onDelete(task.id);
             }
           }}
@@ -84,7 +84,7 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name || !formData.command) {
-      alert('Gorev adi ve komutu zorunludur!');
+      alert('Görev adı ve komutu zorunludur!');
       return;
     }
     onSubmit(formData);
@@ -92,24 +92,24 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
 
   const quickTemplates = [
     {
-      name: 'Redis Guncelleme 7 -> 8.2.2',
+      name: 'Redis Güncelleme 7 -> 8.2.2',
       command: 'docker pull redis:8.2.2-alpine && docker stop redis-container && docker rm redis-container && docker run -d --name redis-container -p 6379:6379 redis:8.2.2-alpine',
-      description: 'Redis container guncellemesi'
+      description: 'Redis container güncellemesi'
     },
     {
-      name: 'PostgreSQL Guncelleme',
+      name: 'PostgreSQL Güncelleme',
       command: 'docker pull postgres:16-alpine && docker stop postgres-container && docker rm postgres-container && docker run -d --name postgres-container -e POSTGRES_PASSWORD=mypass -p 5432:5432 postgres:16-alpine',
-      description: 'PostgreSQL container guncellemesi'
+      description: 'PostgreSQL container güncellemesi'
     },
     {
-      name: 'Sistem Guncelleme (Ubuntu)',
+      name: 'Sistem Güncelleme (Ubuntu)',
       command: 'apt update && apt upgrade -y && apt autoremove -y',
-      description: 'Ubuntu sistem guncellemesi'
+      description: 'Ubuntu sistem güncellemesi'
     },
     {
       name: 'Docker Compose Deploy',
       command: 'cd /opt/myapp && docker-compose pull && docker-compose up -d --force-recreate',
-      description: 'Docker Compose ile uygulama guncellemesi'
+      description: 'Docker Compose ile uygulama güncellemesi'
     }
   ];
 
@@ -127,7 +127,7 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
   return (
     <div className="bg-slate-900/95 backdrop-blur-sm p-6 rounded-xl border border-slate-700 space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">Yeni Gorev Ekle</h3>
+        <h3 className="text-lg font-semibold text-white">Yeni Görev Ekle</h3>
         <button
           onClick={onCancel}
           className="p-1 hover:bg-slate-800 rounded transition-colors"
@@ -143,7 +143,7 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
           onClick={() => setShowTemplates(!showTemplates)}
           className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-lg text-left flex items-center justify-between transition-colors"
         >
-          <span className="text-sm text-slate-300">Hizli Sablonlar</span>
+          <span className="text-sm text-slate-300">Hızlı Şablonlar</span>
           <FileText className="w-4 h-4 text-slate-400" />
         </button>
 
@@ -167,26 +167,26 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
-            Gorev Adi *
+            Görev Adı *
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            placeholder="Orn: Redis Guncelleme"
+            placeholder="Örn: Redis Güncelleme"
             className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
-            Aciklama
+            Açıklama
           </label>
           <input
             type="text"
             value={formData.description}
             onChange={(e) => setFormData({...formData, description: e.target.value})}
-            placeholder="Gorev hakkinda kisa aciklama (opsiyonel)"
+            placeholder="Görev hakkında kısa açıklama (opsiyonel)"
             className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
           />
         </div>
@@ -203,7 +203,7 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
             className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all font-mono text-sm resize-none"
           />
           <p className="mt-1 text-xs text-slate-500">
-            && ile birlestirerek birden fazla komut calistirebilirsiniz
+            && ile birleştirerek birden fazla komut çalıştırabilirsiniz
           </p>
         </div>
 
@@ -212,14 +212,14 @@ const AddTaskForm = ({ onSubmit, onCancel }) => {
             type="submit"
             className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-purple-500/30"
           >
-            Gorev Ekle
+            Görev Ekle
           </button>
           <button
             type="button"
             onClick={onCancel}
             className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
           >
-            Iptal
+            İptal
           </button>
         </div>
       </form>
@@ -252,9 +252,9 @@ export default function TaskList({
             <Settings className="w-6 h-6 text-purple-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Gorevler</h2>
+            <h2 className="text-xl font-bold text-white">Görevler</h2>
             <p className="text-sm text-slate-400">
-              {tasks.length} gorev tanimli
+              {tasks.length} görev tanımlı
             </p>
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function TaskList({
               ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
               : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
           }`}
-          title={showAddForm ? 'Iptal' : 'Gorev Ekle'}
+          title={showAddForm ? 'İptal' : 'Görev Ekle'}
         >
           {showAddForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
         </button>
@@ -289,15 +289,15 @@ export default function TaskList({
             <div className="p-4 bg-slate-700/30 rounded-full mb-4">
               <Settings className="w-12 h-12 text-slate-600" />
             </div>
-            <h3 className="text-lg font-medium text-slate-400 mb-2">Henuz gorev yok</h3>
+            <h3 className="text-lg font-medium text-slate-400 mb-2">Henüz görev yok</h3>
             <p className="text-sm text-slate-500 mb-4">
-              Baslamak icin yeni bir gorev olusturun
+              Başlamak için yeni bir görev oluşturun
             </p>
             <button
               onClick={() => setShowAddForm(true)}
               className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
             >
-              Ilk Gorevi Olustur
+              İlk Görevi Oluştur
             </button>
           </div>
         ) : (
@@ -324,13 +324,13 @@ export default function TaskList({
           >
             <Play className="w-6 h-6" />
             <span>
-              Gorevi Calistir
+              Görevi Çalıştır
               {selectedServersCount > 0 && ` (${selectedServersCount} sunucu)`}
             </span>
           </button>
           {selectedServersCount === 0 && (
             <p className="text-center text-sm text-slate-500 mt-2">
-              Once sunucu secin
+              Önce sunucu seçin
             </p>
           )}
         </div>

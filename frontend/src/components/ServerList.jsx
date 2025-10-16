@@ -31,7 +31,7 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
           : 'bg-slate-800/50 border-slate-700 hover:border-slate-600 hover:bg-slate-800/70'
       }`}
     >
-      {/* Selection Indicator */}
+      {/* Seçim İndikatörü */}
       <div className={`absolute top-3 right-3 w-5 h-5 rounded-full border-2 transition-all ${
         isSelected
           ? 'bg-blue-500 border-blue-400'
@@ -40,7 +40,7 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
         {isSelected && <CheckCircle className="w-full h-full text-white" />}
       </div>
 
-      {/* Server Info */}
+      {/* Sunucu Bilgisi */}
       <div className="flex items-start gap-3 pr-8">
         <div className={`p-2.5 rounded-lg ${
           isSelected ? 'bg-blue-500/30' : 'bg-slate-700/50'
@@ -57,7 +57,7 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
                   ? 'bg-green-500/20 text-green-400'
                   : 'bg-red-500/20 text-red-400'
               }`}>
-                {testResult === 'success' ? ' Online' : ' Offline'}
+                {testResult === 'success' ? '✓ Çevrimiçi' : '✗ Çevrimdışı'}
               </span>
             )}
           </div>
@@ -70,13 +70,13 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
 
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span>@{server.username}</span>
-            <span>"</span>
+            <span>•</span>
             <span>{new Date(server.created_at).toLocaleDateString('tr-TR')}</span>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Aksiyon Butonları */}
       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-700/50">
         <button
           onClick={handleTest}
@@ -91,7 +91,7 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
           ) : (
             <>
               <Wifi className="w-4 h-4" />
-              <span>Balant1 Testi</span>
+              <span>Bağlantı Testi</span>
             </>
           )}
         </button>
@@ -99,7 +99,7 @@ const ServerCard = ({ server, isSelected, onToggle, onDelete, onTest }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            if (confirm(`${server.name} sunucusunu silmek istediinize emin misiniz?`)) {
+            if (confirm(`${server.name} sunucusunu silmek istediğinize emin misiniz?`)) {
               onDelete(server.id);
             }
           }}
@@ -123,17 +123,17 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
     private_key: ''
   });
 
-  const [authType, setAuthType] = useState('password'); // 'password' or 'key'
+  const [authType, setAuthType] = useState('password');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name || !formData.host || !formData.username) {
-      alert('Sunucu ad1, host ve kullan1c1 ad1 zorunludur!');
+      alert('Sunucu adı, host ve kullanıcı adı zorunludur!');
       return;
     }
 
     if (authType === 'password' && !formData.password) {
-      alert('^ifre zorunludur!');
+      alert('Şifre zorunludur!');
       return;
     }
 
@@ -155,13 +155,13 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
-            Sunucu Ad1 *
+            Sunucu Adı *
           </label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            placeholder="�rn: Production DB Server"
+            placeholder="Örn: Production DB Server"
             className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
           />
         </div>
@@ -195,7 +195,7 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
 
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
-            Kullan1c1 Ad1 *
+            Kullanıcı Adı *
           </label>
           <input
             type="text"
@@ -206,10 +206,10 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
           />
         </div>
 
-        {/* Auth Type Toggle */}
+        {/* Kimlik Doğrulama Tipi */}
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
-            Kimlik Dorulama Tipi
+            Kimlik Doğrulama Yöntemi
           </label>
           <div className="flex gap-2">
             <button
@@ -221,7 +221,7 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
                   : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
               }`}
             >
-              ^ifre
+              Şifre
             </button>
             <button
               type="button"
@@ -232,7 +232,7 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
                   : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
               }`}
             >
-              SSH Key
+              SSH Anahtarı
             </button>
           </div>
         </div>
@@ -240,7 +240,7 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
         {authType === 'password' ? (
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              ^ifre *
+              Şifre *
             </label>
             <input
               type="password"
@@ -277,7 +277,7 @@ const AddServerForm = ({ onSubmit, onCancel }) => {
             onClick={onCancel}
             className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
           >
-            0ptal
+            İptal
           </button>
         </div>
       </form>
@@ -310,7 +310,7 @@ export default function ServerList({
 
   return (
     <div className="bg-slate-800/50 backdrop-blur rounded-xl p-6 border border-slate-700 h-full flex flex-col">
-      {/* Header */}
+      {/* Başlık */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-500/20 rounded-lg">
@@ -319,7 +319,7 @@ export default function ServerList({
           <div>
             <h2 className="text-xl font-bold text-white">Sunucular</h2>
             <p className="text-sm text-slate-400">
-              {selectedServers.length} / {servers.length} se�ili
+              {selectedServers.length} / {servers.length} seçili
             </p>
           </div>
         </div>
@@ -331,19 +331,19 @@ export default function ServerList({
               ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
               : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
           }`}
-          title={showAddForm ? '0ptal' : 'Sunucu Ekle'}
+          title={showAddForm ? 'İptal' : 'Sunucu Ekle'}
         >
           {showAddForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Quick Actions */}
+      {/* Hızlı Aksiyonlar */}
       <div className="flex gap-2 mb-4">
         <button
           onClick={handleSelectAll}
           className="text-xs px-3 py-2 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
         >
-          T�m�n� Se� ({servers.length})
+          Tümünü Seç ({servers.length})
         </button>
         <button
           onClick={handleDeselectAll}
@@ -353,7 +353,7 @@ export default function ServerList({
         </button>
       </div>
 
-      {/* Add Server Form */}
+      {/* Sunucu Ekleme Formu */}
       {showAddForm && (
         <div className="mb-4">
           <AddServerForm
@@ -363,22 +363,22 @@ export default function ServerList({
         </div>
       )}
 
-      {/* Server List */}
+      {/* Sunucu Listesi */}
       <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
         {servers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
             <div className="p-4 bg-slate-700/30 rounded-full mb-4">
               <Server className="w-12 h-12 text-slate-600" />
             </div>
-            <h3 className="text-lg font-medium text-slate-400 mb-2">Hen�z sunucu yok</h3>
+            <h3 className="text-lg font-medium text-slate-400 mb-2">Henüz sunucu yok</h3>
             <p className="text-sm text-slate-500 mb-4">
-              Ba_lamak i�in yeni bir sunucu ekleyin
+              Başlamak için yeni bir sunucu ekleyin
             </p>
             <button
               onClick={() => setShowAddForm(true)}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
             >
-              0lk Sunucuyu Ekle
+              İlk Sunucuyu Ekle
             </button>
           </div>
         ) : (

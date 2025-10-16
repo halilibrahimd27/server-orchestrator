@@ -5,6 +5,7 @@ const WebSocket = require('ws');
 const { initDatabase } = require('./config/database');
 const serverRoutes = require('./routes/serverRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const backupRoutes = require('./routes/backupRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,29 +13,42 @@ const WS_PORT = process.env.WS_PORT || 8080;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ charset: 'utf-8' }));
+app.use(express.urlencoded({ extended: true, charset: 'utf-8' }));
+
+// UTF-8 charset header'ı ekle
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
 
 // Routes
 app.use('/api/servers', serverRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/backup', backupRoutes);
 
-// Health check
+// Sağlık kontrolü
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'OK',
+    durum: 'Çalışıyor',
+    timestamp: new Date().toISOString(),
+    veritabani: process.env.DB_TYPE || 'sqlite'
+  });
 });
 
 // WebSocket server for real-time logs
 const wss = new WebSocket.Server({ port: WS_PORT });
 
 wss.on('connection', (ws) => {
-  console.log('WebSocket client connected');
-  
+  console.log('✅ WebSocket istemcisi bağlandı');
+
   ws.on('message', (message) => {
-    console.log('Received:', message);
+    console.log('📨 Alınan mesaj:', message);
   });
 
   ws.on('close', () => {
-    console.log('WebSocket client disconnected');
+    console.log('❌ WebSocket istemcisi bağlantıyı kesti');
   });
 });
 
@@ -50,13 +64,14 @@ global.broadcastLog = (data) => {
   });
 };
 
-// Database initialization
+// Veritabanı başlatma
 initDatabase().then(() => {
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🔌 WebSocket running on ws://localhost:${WS_PORT}`);
+    console.log(`🚀 Sunucu çalışıyor: http://localhost:${PORT}`);
+    console.log(`🔌 WebSocket çalışıyor: ws://localhost:${WS_PORT}`);
+    console.log(`📊 Veritabanı: ${process.env.DB_TYPE || 'sqlite'}`);
   });
 }).catch((err) => {
-  console.error('Failed to initialize database:', err);
+  console.error('❌ Veritabanı başlatma hatası:', err);
   process.exit(1);
 });

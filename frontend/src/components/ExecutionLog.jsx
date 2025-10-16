@@ -66,7 +66,7 @@ const ExecutionStats = ({ logs }) => {
         <div className="text-2xl font-bold text-white">{stats.total}</div>
       </div>
       <div className="bg-green-900/20 rounded-lg p-3 border border-green-800/30">
-        <div className="text-xs text-green-400 mb-1">Basarili</div>
+        <div className="text-xs text-green-400 mb-1">Başarılı</div>
         <div className="text-2xl font-bold text-green-300">{stats.success}</div>
       </div>
       <div className="bg-red-900/20 rounded-lg p-3 border border-red-800/30">
@@ -126,9 +126,9 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
             )}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Calistirma Loglari</h2>
+            <h2 className="text-xl font-bold text-white">Çalıştırma Logları</h2>
             <p className="text-sm text-slate-400">
-              {isExecuting ? 'Gorev calistiriliyor...' : `${logs.length} log girisi`}
+              {isExecuting ? 'Görev çalıştırılıyor...' : `${logs.length} log girişi`}
             </p>
           </div>
         </div>
@@ -141,9 +141,9 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
               onChange={(e) => setFilter(e.target.value)}
               className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white outline-none cursor-pointer appearance-none pr-8"
             >
-              <option value="all">Tum Loglar</option>
+              <option value="all">Tüm Loglar</option>
               <option value="info">Bilgi</option>
-              <option value="output">Cikti</option>
+              <option value="output">Çıktı</option>
               <option value="error">Hatalar</option>
             </select>
             <Filter className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -157,7 +157,7 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
                 ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
                 : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
             }`}
-            title={autoScroll ? 'Otomatik kaydir: Acik' : 'Otomatik kaydir: Kapali'}
+            title={autoScroll ? 'Otomatik kaydır: Açık' : 'Otomatik kaydır: Kapalı'}
           >
             Auto
           </button>
@@ -167,7 +167,7 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
               <button
                 onClick={downloadLogs}
                 className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-                title="Loglari indir"
+                title="Logları indir"
               >
                 <Download className="w-5 h-5 text-slate-300" />
               </button>
@@ -175,7 +175,7 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
               <button
                 onClick={onClearLogs}
                 className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
-                title="Loglari temizle"
+                title="Logları temizle"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
@@ -198,12 +198,12 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
               <Terminal className="w-12 h-12 text-slate-600" />
             </div>
             <h3 className="text-lg font-medium text-slate-400 mb-2">
-              {logs.length === 0 ? 'Henuz log yok' : 'Filtre sonucu yok'}
+              {logs.length === 0 ? 'Henüz log yok' : 'Filtre sonucu yok'}
             </h3>
             <p className="text-sm text-slate-500">
               {logs.length === 0
-                ? 'Bir gorev calistirdiginizda loglar burada gorunur'
-                : 'Secilen filtreye uygun log bulunamadi'}
+                ? 'Bir görev çalıştırdığınızda loglar burada görünür'
+                : 'Seçilen filtreye uygun log bulunamadı'}
             </p>
           </div>
         ) : (
@@ -220,7 +220,7 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
             </div>
-            <span className="text-sm text-green-400">Gorev devam ediyor...</span>
+            <span className="text-sm text-green-400">Görev devam ediyor...</span>
           </div>
         )}
       </div>

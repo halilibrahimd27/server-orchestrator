@@ -1,148 +1,143 @@
-const { getDatabase } = require('../config/database');
+const { query } = require('../config/database');
 const { encrypt, decrypt } = require('../services/encryption');
 const { testConnection } = require('../services/sshExecutor');
 
-// Get all servers
-exports.getAllServers = (req, res) => {
-  const db = getDatabase();
-  
-  db.all('SELECT id, name, host, port, username, status, created_at FROM servers', [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ servers: rows });
-  });
+// Tüm sunucuları getir
+exports.getAllServers = async (req, res) => {
+  try {
+    const servers = await query(
+      'SELECT id, name, host, port, username, status, created_at FROM servers'
+    );
+    res.json({ servers });
+  } catch (err) {
+    res.status(500).json({ error: 'Sunucular yüklenirken hata oluştu: ' + err.message });
+  }
 };
 
-// Get server by ID
-exports.getServerById = (req, res) => {
-  const db = getDatabase();
+// ID'ye göre sunucu getir
+exports.getServerById = async (req, res) => {
   const { id } = req.params;
-  
-  db.get(
-    'SELECT id, name, host, port, username, status, created_at FROM servers WHERE id = ?',
-    [id],
-    (err, row) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      if (!row) {
-        return res.status(404).json({ error: 'Server not found' });
-      }
-      res.json({ server: row });
+
+  try {
+    const servers = await query(
+      'SELECT id, name, host, port, username, status, created_at FROM servers WHERE id = ?',
+      [id]
+    );
+
+    if (!servers || servers.length === 0) {
+      return res.status(404).json({ error: 'Sunucu bulunamadı' });
     }
-  );
+
+    res.json({ server: servers[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Sunucu getirilirken hata oluştu: ' + err.message });
+  }
 };
 
-// Create new server
-exports.createServer = (req, res) => {
-  const db = getDatabase();
+// Yeni sunucu oluştur
+exports.createServer = async (req, res) => {
   const { name, host, port, username, password, private_key } = req.body;
-  
+
   if (!name || !host || !username) {
-    return res.status(400).json({ error: 'Name, host, and username are required' });
+    return res.status(400).json({ error: 'Ad, host ve kullanıcı adı zorunludur' });
   }
-  
-  // Encrypt sensitive data
-  const encryptedPassword = password ? encrypt(password) : null;
-  const encryptedPrivateKey = private_key ? encrypt(private_key) : null;
-  
-  db.run(
-    `INSERT INTO servers (name, host, port, username, password, private_key) 
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [name, host, port || 22, username, encryptedPassword, encryptedPrivateKey],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE')) {
-          return res.status(400).json({ error: 'Server name already exists' });
-        }
-        return res.status(500).json({ error: err.message });
-      }
-      
-      res.status(201).json({
-        message: 'Server created successfully',
-        serverId: this.lastID
-      });
+
+  try {
+    // Hassas verileri şifrele
+    const encryptedPassword = password ? encrypt(password) : null;
+    const encryptedPrivateKey = private_key ? encrypt(private_key) : null;
+
+    const result = await query(
+      `INSERT INTO servers (name, host, port, username, password, private_key)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, host, port || 22, username, encryptedPassword, encryptedPrivateKey]
+    );
+
+    res.status(201).json({
+      message: 'Sunucu başarıyla oluşturuldu',
+      serverId: result.insertId
+    });
+  } catch (err) {
+    if (err.message.includes('UNIQUE') || err.message.includes('Duplicate')) {
+      return res.status(400).json({ error: 'Bu sunucu adı zaten kullanılıyor' });
     }
-  );
+    res.status(500).json({ error: 'Sunucu oluşturulurken hata oluştu: ' + err.message });
+  }
 };
 
-// Update server
-exports.updateServer = (req, res) => {
-  const db = getDatabase();
+// Sunucu güncelle
+exports.updateServer = async (req, res) => {
   const { id } = req.params;
   const { name, host, port, username, password, private_key } = req.body;
-  
-  // Build update query dynamically
-  const updates = [];
-  const values = [];
-  
-  if (name) { updates.push('name = ?'); values.push(name); }
-  if (host) { updates.push('host = ?'); values.push(host); }
-  if (port) { updates.push('port = ?'); values.push(port); }
-  if (username) { updates.push('username = ?'); values.push(username); }
-  if (password) { updates.push('password = ?'); values.push(encrypt(password)); }
-  if (private_key) { updates.push('private_key = ?'); values.push(encrypt(private_key)); }
-  
-  updates.push('updated_at = CURRENT_TIMESTAMP');
-  values.push(id);
-  
-  if (updates.length === 1) {
-    return res.status(400).json({ error: 'No fields to update' });
+
+  try {
+    // Dinamik güncelleme sorgusu oluştur
+    const updates = [];
+    const values = [];
+
+    if (name) { updates.push('name = ?'); values.push(name); }
+    if (host) { updates.push('host = ?'); values.push(host); }
+    if (port) { updates.push('port = ?'); values.push(port); }
+    if (username) { updates.push('username = ?'); values.push(username); }
+    if (password) { updates.push('password = ?'); values.push(encrypt(password)); }
+    if (private_key) { updates.push('private_key = ?'); values.push(encrypt(private_key)); }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'Güncellenecek alan yok' });
+    }
+
+    updates.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const result = await query(
+      `UPDATE servers SET ${updates.join(', ')} WHERE id = ?`,
+      values
+    );
+
+    if (result.changes === 0 && result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Sunucu bulunamadı' });
+    }
+
+    res.json({ message: 'Sunucu başarıyla güncellendi' });
+  } catch (err) {
+    res.status(500).json({ error: 'Sunucu güncellenirken hata oluştu: ' + err.message });
   }
-  
-  db.run(
-    `UPDATE servers SET ${updates.join(', ')} WHERE id = ?`,
-    values,
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Server not found' });
-      }
-      res.json({ message: 'Server updated successfully' });
-    }
-  );
 };
 
-// Delete server
-exports.deleteServer = (req, res) => {
-  const db = getDatabase();
+// Sunucu sil
+exports.deleteServer = async (req, res) => {
   const { id } = req.params;
-  
-  db.run('DELETE FROM servers WHERE id = ?', [id], function(err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+
+  try {
+    const result = await query('DELETE FROM servers WHERE id = ?', [id]);
+
+    if (result.changes === 0 && result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Sunucu bulunamadı' });
     }
-    if (this.changes === 0) {
-      return res.status(404).json({ error: 'Server not found' });
-    }
-    res.json({ message: 'Server deleted successfully' });
-  });
+
+    res.json({ message: 'Sunucu başarıyla silindi' });
+  } catch (err) {
+    res.status(500).json({ error: 'Sunucu silinirken hata oluştu: ' + err.message });
+  }
 };
 
-// Test server connection
+// Sunucu bağlantı testi
 exports.testServerConnection = async (req, res) => {
-  const db = getDatabase();
   const { id } = req.params;
-  
-  db.get('SELECT * FROM servers WHERE id = ?', [id], async (err, server) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+
+  try {
+    const servers = await query('SELECT * FROM servers WHERE id = ?', [id]);
+
+    if (!servers || servers.length === 0) {
+      return res.status(404).json({ error: 'Sunucu bulunamadı' });
     }
-    if (!server) {
-      return res.status(404).json({ error: 'Server not found' });
-    }
-    
-    try {
-      const result = await testConnection(server);
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
-      });
-    }
-  });
+
+    const result = await testConnection(servers[0]);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Bağlantı testi başarısız: ' + error.message
+    });
+  }
 };

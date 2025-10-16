@@ -23,7 +23,7 @@ export default function App() {
       if (data.type === 'execution_start') {
         setIsExecuting(true);
         setExecutionLog([{
-          message: `${data.taskName} baslatildi (${data.serverCount} sunucu)`,
+          message: `${data.taskName} başlatıldı (${data.serverCount} sunucu)`,
           timestamp: new Date().toLocaleTimeString('tr-TR'),
           type: 'info'
         }]);
@@ -37,7 +37,7 @@ export default function App() {
       } else if (data.type === 'execution_complete') {
         setIsExecuting(false);
         setExecutionLog(prev => [...prev, {
-          message: 'Gorev tamamlandi!',
+          message: 'Görev tamamlandı!',
           timestamp: new Date().toLocaleTimeString('tr-TR'),
           type: 'success'
         }]);
@@ -84,7 +84,7 @@ export default function App() {
       await serverAPI.create(serverData);
       loadServers();
     } catch (error) {
-      alert('Sunucu eklenirken hata olustu: ' + error.message);
+      alert('Sunucu eklenirken hata oluştu: ' + error.message);
       throw error;
     }
   };
@@ -95,7 +95,7 @@ export default function App() {
       setSelectedServers(selectedServers.filter(s => s !== id));
       loadServers();
     } catch (error) {
-      alert('Sunucu silinirken hata olustu: ' + error.message);
+      alert('Sunucu silinirken hata oluştu: ' + error.message);
     }
   };
 
@@ -117,7 +117,7 @@ export default function App() {
       await taskAPI.create(taskData);
       loadTasks();
     } catch (error) {
-      alert('Gorev eklenirken hata olustu: ' + error.message);
+      alert('Görev eklenirken hata oluştu: ' + error.message);
       throw error;
     }
   };
@@ -130,13 +130,13 @@ export default function App() {
       }
       loadTasks();
     } catch (error) {
-      alert('Gorev silinirken hata olustu: ' + error.message);
+      alert('Görev silinirken hata oluştu: ' + error.message);
     }
   };
 
   const handleExecuteTask = async () => {
     if (!selectedTask || selectedServers.length === 0) {
-      alert('Lutfen hem sunucu hem de gorev secin!');
+      alert('Lütfen hem sunucu hem de görev seçin!');
       return;
     }
 
@@ -148,7 +148,7 @@ export default function App() {
       setTimeout(() => loadServers(), 2000);
     } catch (error) {
       setIsExecuting(false);
-      alert('Gorev calistirilirken hata olustu: ' + error.message);
+      alert('Görev çalıştırılırken hata oluştu: ' + error.message);
       setExecutionLog(prev => [...prev, {
         message: `HATA: ${error.message}`,
         timestamp: new Date().toLocaleTimeString('tr-TR'),
@@ -171,7 +171,7 @@ export default function App() {
               Server Orchestrator
             </h1>
             <p className="text-slate-400 text-lg">
-              {servers.length} sunucuyu tek tikla yonet - {selectedServers.length} sunucu secili
+              {servers.length} sunucuyu tek tıkla yönet - {selectedServers.length} sunucu seçili
             </p>
           </div>
           <button
@@ -231,11 +231,11 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-            <span>{tasks.length} Gorev</span>
+            <span>{tasks.length} Görev</span>
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${isExecuting ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></div>
-            <span>{isExecuting ? 'Calistiriliyor...' : 'Hazir'}</span>
+            <span>{isExecuting ? 'Çalıştırılıyor...' : 'Hazır'}</span>
           </div>
         </div>
       </div>
