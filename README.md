@@ -33,7 +33,8 @@ chmod +x start.sh
 ./start.sh
 ```
 
-<img width="1734" height="907" alt="Screenshot_10" src="https://github.com/user-attachments/assets/49b02223-6e84-4ab1-88c6-23f55cf55da9" />
+<img width="1710" height="1107" alt="image" src="https://github.com/user-attachments/assets/b4feece1-10f3-444f-b61a-2e4ef397730f" />
+
 
 
 ### Manuel Kurulum Gereksinimler
