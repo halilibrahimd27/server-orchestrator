@@ -135,9 +135,9 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
   };
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm p-6 rounded-xl border border-slate-700 space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
+    <div className="bg-slate-900/95 backdrop-blur-sm p-4 rounded-xl border border-slate-700 max-h-[500px] overflow-y-auto custom-scrollbar">
+      <div className="flex items-center justify-between mb-3 sticky top-0 bg-slate-900 pb-2">
+        <h3 className="text-base font-semibold text-white">
           {isEdit ? 'Görevi Düzenle' : 'Yeni Görev Ekle'}
         </h3>
         <button
@@ -178,9 +178,9 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-xs font-medium text-slate-300 mb-1.5">
             Görev Adı *
           </label>
           <input
@@ -188,12 +188,12 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
             placeholder="Örn: Redis Güncelleme"
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+            className="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-xs font-medium text-slate-300 mb-1.5">
             Açıklama
           </label>
           <input
@@ -201,37 +201,37 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
             value={formData.description}
             onChange={(e) => setFormData({...formData, description: e.target.value})}
             placeholder="Görev hakkında kısa açıklama (opsiyonel)"
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+            className="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-xs font-medium text-slate-300 mb-1.5">
             Komut *
           </label>
           <textarea
             value={formData.command}
             onChange={(e) => setFormData({...formData, command: e.target.value})}
             placeholder="docker pull redis:8.2.2-alpine && ..."
-            rows={6}
-            className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all font-mono text-sm resize-none"
+            rows={4}
+            className="w-full px-3 py-2 text-sm bg-slate-800 border border-slate-600 rounded-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all font-mono resize-none"
           />
           <p className="mt-1 text-xs text-slate-500">
             && ile birleştirerek birden fazla komut çalıştırabilirsiniz
           </p>
         </div>
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-2 pt-2 sticky bottom-0 bg-slate-900 pb-1">
           <button
             type="submit"
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-purple-500/30"
+            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-500/20"
           >
             {isEdit ? 'Güncelle' : 'Görev Ekle'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors"
           >
             İptal
           </button>

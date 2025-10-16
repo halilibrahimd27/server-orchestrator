@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { serverAPI, taskAPI, connectWebSocket } from './services/api';
+import { RefreshCw, Activity, Layers, X } from 'lucide-react';
+import { serverAPI, taskAPI, groupAPI, healthAPI, connectWebSocket } from './services/api';
 import ServerList from './components/ServerList';
 import TaskList from './components/TaskList';
 import ExecutionLog from './components/ExecutionLog';
@@ -12,11 +12,16 @@ export default function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [executionLog, setExecutionLog] = useState([]);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [healthSummary, setHealthSummary] = useState(null);
+  const [showGroupsModal, setShowGroupsModal] = useState(false);
 
   // Load data on mount
   useEffect(() => {
     loadServers();
     loadTasks();
+    loadGroups();
+    loadHealthSummary();
 
     // WebSocket connection
     const ws = connectWebSocket((data) => {
@@ -63,6 +68,24 @@ export default function App() {
       setTasks(data.tasks || []);
     } catch (error) {
       console.error('Failed to load tasks:', error);
+    }
+  };
+
+  const loadGroups = async () => {
+    try {
+      const data = await groupAPI.getAll();
+      setGroups(data.groups || []);
+    } catch (error) {
+      console.error('Failed to load groups:', error);
+    }
+  };
+
+  const loadHealthSummary = async () => {
+    try {
+      const data = await healthAPI.getSummary();
+      setHealthSummary(data.summary);
+    } catch (error) {
+      console.error('Failed to load health summary:', error);
     }
   };
 
@@ -185,31 +208,70 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6">
       <div className="max-w-[1920px] mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Server Orchestrator
-            </h1>
-            <p className="text-slate-400 text-lg">
-              {servers.length} sunucuyu tek tıkla yönet - {selectedServers.length} sunucu seçili
-            </p>
+        <div className="mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold mb-1 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Server Orchestrator <span className="text-xs text-slate-500 ml-2">v2.0</span>
+              </h1>
+              <p className="text-slate-400 text-sm">
+                {servers.length} sunucu - {selectedServers.length} seçili
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                loadServers();
+                loadTasks();
+                loadGroups();
+                loadHealthSummary();
+              }}
+              className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-all"
+              title="Yenile"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={() => {
-              loadServers();
-              loadTasks();
-            }}
-            className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-all hover:scale-105 active:scale-95"
-            title="Yenile"
-          >
-            <RefreshCw className="w-6 h-6" />
-          </button>
+
+          {/* Quick Stats Bar */}
+          <div className="flex items-center gap-3 text-xs">
+            <button
+              onClick={() => setShowGroupsModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-md transition-colors cursor-pointer"
+              title="Grupları Görüntüle"
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-slate-300">{groups.length} Grup</span>
+            </button>
+
+            {healthSummary && healthSummary.total_servers > 0 && (
+              <>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800 rounded-md">
+                  <Activity className="w-3.5 h-3.5 text-green-400" />
+                  <span className="text-slate-300">{healthSummary.online_servers} Online</span>
+                </div>
+
+                {healthSummary.critical_servers.length > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-900/20 border border-red-500/30 rounded-md">
+                    <Activity className="w-3.5 h-3.5 text-red-400" />
+                    <span className="text-red-300">{healthSummary.critical_servers.length} Kritik</span>
+                  </div>
+                )}
+
+                {healthSummary.warning_servers.length > 0 && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-yellow-900/20 border border-yellow-500/30 rounded-md">
+                    <Activity className="w-3.5 h-3.5 text-yellow-400" />
+                    <span className="text-yellow-300">{healthSummary.warning_servers.length} Uyarı</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
         {/* Main Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Left Sidebar - Servers */}
-          <div className="xl:col-span-4 h-[calc(100vh-180px)]">
+          <div className="xl:col-span-4 h-[calc(100vh-200px)]">
             <ServerList
               servers={servers}
               selectedServers={selectedServers}
@@ -222,7 +284,7 @@ export default function App() {
           </div>
 
           {/* Middle - Tasks */}
-          <div className="xl:col-span-3 h-[calc(100vh-180px)]">
+          <div className="xl:col-span-3 h-[calc(100vh-200px)]">
             <TaskList
               tasks={tasks}
               selectedTask={selectedTask}
@@ -236,7 +298,7 @@ export default function App() {
           </div>
 
           {/* Right - Execution Logs */}
-          <div className="xl:col-span-5 h-[calc(100vh-180px)]">
+          <div className="xl:col-span-5 h-[calc(100vh-200px)]">
             <ExecutionLog
               logs={executionLog}
               isExecuting={isExecuting}
@@ -260,6 +322,58 @@ export default function App() {
             <span>{isExecuting ? 'Çalıştırılıyor...' : 'Hazır'}</span>
           </div>
         </div>
+
+        {/* Groups Modal */}
+        {showGroupsModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowGroupsModal(false)}>
+            <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Sunucu Grupları</h2>
+                <button
+                  onClick={() => setShowGroupsModal(false)}
+                  className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {groups.length === 0 ? (
+                  <p className="text-center text-slate-400 py-8">Henüz grup yok</p>
+                ) : (
+                  groups.map(group => (
+                    <div
+                      key={group.id}
+                      className="p-4 bg-slate-800/50 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white">{group.name}</h3>
+                          {group.description && (
+                            <p className="text-sm text-slate-400 mt-1">{group.description}</p>
+                          )}
+                        </div>
+                        <div className="text-sm text-slate-500">
+                          {group.server_count} sunucu
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                <p className="text-sm text-blue-300">
+                  <strong>Not:</strong> Sunucu ekleme/düzenleme formunda grup seçimi yakında eklenecek!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

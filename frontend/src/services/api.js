@@ -98,26 +98,81 @@ export const taskAPI = {
   }
 };
 
+// Groups (NEW in v2.0)
+export const groupAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_URL}/groups`);
+    return res.json();
+  },
+
+  getById: async (id) => {
+    const res = await fetch(`${API_URL}/groups/${id}`);
+    return res.json();
+  },
+
+  create: async (data) => {
+    const res = await fetch(`${API_URL}/groups`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  getServers: async (groupId) => {
+    const res = await fetch(`${API_URL}/groups/${groupId}/servers`);
+    return res.json();
+  }
+};
+
+// Health Monitoring (NEW in v2.0)
+export const healthAPI = {
+  getSummary: async () => {
+    const res = await fetch(`${API_URL}/health/summary`);
+    return res.json();
+  },
+
+  getMetrics: async () => {
+    const res = await fetch(`${API_URL}/health/metrics`);
+    return res.json();
+  },
+
+  collectMetrics: async () => {
+    const res = await fetch(`${API_URL}/health/collect`, {
+      method: 'POST'
+    });
+    return res.json();
+  }
+};
+
+// Schedules (NEW in v2.0)
+export const scheduleAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_URL}/schedules`);
+    return res.json();
+  }
+};
+
 // WebSocket connection
 export const connectWebSocket = (onMessage) => {
   const ws = new WebSocket('ws://localhost:8080');
-  
+
   ws.onopen = () => {
     console.log('✅ WebSocket connected');
   };
-  
+
   ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
     onMessage(data);
   };
-  
+
   ws.onerror = (error) => {
     console.error('WebSocket error:', error);
   };
-  
+
   ws.onclose = () => {
     console.log('WebSocket disconnected');
   };
-  
+
   return ws;
 };
