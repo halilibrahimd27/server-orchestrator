@@ -478,7 +478,7 @@ export default function App() {
             <p className="text-slate-400 text-sm">
               Made with <span className="text-red-500">❤️</span> by{' '}
               <a
-                href="https://github.com/halilibrahimd27"
+                href="https://fogeto.com/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
