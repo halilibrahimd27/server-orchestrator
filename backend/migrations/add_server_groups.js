@@ -63,10 +63,10 @@ async function addServerGroupsTables() {
       await query(`
         INSERT INTO server_groups (name, description, color) VALUES
         ('Production', 'Canlı sunucular', '#ef4444'),
-        ('API', 'Backend Sunucuları', '#f59e0b'),
+        ('Backend', 'Backend API Sunucuları', '#f59e0b'),
+        ('Frontend', 'Frontend Web Sunucuları', '#3b82f6'),
         ('Development', 'Geliştirme sunucuları', '#10b981'),
-        ('Database', 'Veritabanı sunucuları', '#8b5cf6'),
-        ('Frontend', 'Frontend sunucuları', '#3b82f6')
+        ('Database', 'Veritabanı sunucuları', '#8b5cf6')
       `);
       console.log('✅ Örnek gruplar eklendi');
     }

@@ -166,6 +166,40 @@ export const scheduleAPI = {
   getAll: async () => {
     const res = await fetch(`${API_URL}/schedules`);
     return res.json();
+  },
+
+  create: async (data) => {
+    const res = await fetch(`${API_URL}/schedules`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  update: async (id, data) => {
+    const res = await fetch(`${API_URL}/schedules/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/schedules/${id}`, {
+      method: 'DELETE'
+    });
+    return res.json();
+  },
+
+  toggle: async (id, enabled) => {
+    const res = await fetch(`${API_URL}/schedules/${id}/toggle`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled })
+    });
+    return res.json();
   }
 };
 

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, Activity, Layers, X } from 'lucide-react';
-import { serverAPI, taskAPI, groupAPI, healthAPI, connectWebSocket } from './services/api';
+import { serverAPI, taskAPI, groupAPI, healthAPI, scheduleAPI, connectWebSocket } from './services/api';
 import ServerList from './components/ServerList';
 import TaskList from './components/TaskList';
 import ExecutionLog from './components/ExecutionLog';
+import ScheduleList from './components/ScheduleList';
 
 export default function App() {
   const [servers, setServers] = useState([]);
@@ -15,6 +16,7 @@ export default function App() {
   const [groups, setGroups] = useState([]);
   const [healthSummary, setHealthSummary] = useState(null);
   const [showGroupsModal, setShowGroupsModal] = useState(false);
+  const [schedules, setSchedules] = useState([]);
 
   // Load data on mount
   useEffect(() => {
@@ -22,6 +24,7 @@ export default function App() {
     loadTasks();
     loadGroups();
     loadHealthSummary();
+    loadSchedules();
 
     // WebSocket connection
     const ws = connectWebSocket((data) => {
@@ -86,6 +89,15 @@ export default function App() {
       setHealthSummary(data.summary);
     } catch (error) {
       console.error('Failed to load health summary:', error);
+    }
+  };
+
+  const loadSchedules = async () => {
+    try {
+      const data = await scheduleAPI.getAll();
+      setSchedules(data.schedules || []);
+    } catch (error) {
+      console.error('Failed to load schedules:', error);
     }
   };
 
@@ -202,6 +214,44 @@ export default function App() {
     }
   };
 
+  const handleAddSchedule = async (scheduleData) => {
+    try {
+      await scheduleAPI.create(scheduleData);
+      loadSchedules();
+    } catch (error) {
+      alert('Zamanlama eklenirken hata oluştu: ' + error.message);
+      throw error;
+    }
+  };
+
+  const handleEditSchedule = async (id, scheduleData) => {
+    try {
+      await scheduleAPI.update(id, scheduleData);
+      loadSchedules();
+    } catch (error) {
+      alert('Zamanlama güncellenirken hata oluştu: ' + error.message);
+      throw error;
+    }
+  };
+
+  const handleDeleteSchedule = async (id) => {
+    try {
+      await scheduleAPI.delete(id);
+      loadSchedules();
+    } catch (error) {
+      alert('Zamanlama silinirken hata oluştu: ' + error.message);
+    }
+  };
+
+  const handleToggleSchedule = async (id, enabled) => {
+    try {
+      await scheduleAPI.toggle(id, enabled);
+      loadSchedules();
+    } catch (error) {
+      alert('Zamanlama durumu değiştirilirken hata oluştu: ' + error.message);
+    }
+  };
+
   const handleExecuteTask = async () => {
     if (!selectedTask || selectedServers.length === 0) {
       alert('Lütfen hem sunucu hem de görev seçin!');
@@ -249,6 +299,7 @@ export default function App() {
                 loadTasks();
                 loadGroups();
                 loadHealthSummary();
+                loadSchedules();
               }}
               className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-all"
               title="Yenile"
@@ -296,7 +347,7 @@ export default function App() {
         {/* Main Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           {/* Left Sidebar - Servers */}
-          <div className="xl:col-span-4 h-[calc(100vh-200px)]">
+          <div className="xl:col-span-3 h-[calc(100vh-200px)]">
             <ServerList
               servers={servers}
               selectedServers={selectedServers}
@@ -309,18 +360,34 @@ export default function App() {
             />
           </div>
 
-          {/* Middle - Tasks */}
-          <div className="xl:col-span-3 h-[calc(100vh-200px)]">
-            <TaskList
-              tasks={tasks}
-              selectedTask={selectedTask}
-              onToggleTask={handleToggleTask}
-              onAddTask={handleAddTask}
-              onEditTask={handleEditTask}
-              onDeleteTask={handleDeleteTask}
-              onExecuteTask={handleExecuteTask}
-              selectedServersCount={selectedServers.length}
-            />
+          {/* Middle Column - Tasks & Schedules */}
+          <div className="xl:col-span-4 space-y-6">
+            {/* Tasks */}
+            <div className="h-[calc(50vh-125px)]">
+              <TaskList
+                tasks={tasks}
+                selectedTask={selectedTask}
+                onToggleTask={handleToggleTask}
+                onAddTask={handleAddTask}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteTask}
+                onExecuteTask={handleExecuteTask}
+                selectedServersCount={selectedServers.length}
+              />
+            </div>
+
+            {/* Schedules */}
+            <div className="h-[calc(50vh-125px)]">
+              <ScheduleList
+                schedules={schedules}
+                tasks={tasks}
+                servers={servers}
+                onAddSchedule={handleAddSchedule}
+                onEditSchedule={handleEditSchedule}
+                onDeleteSchedule={handleDeleteSchedule}
+                onToggleSchedule={handleToggleSchedule}
+              />
+            </div>
           </div>
 
           {/* Right - Execution Logs */}
@@ -342,6 +409,10 @@ export default function App() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
             <span>{tasks.length} Görev</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+            <span>{schedules.filter(s => s.enabled).length} Aktif Zamanlama</span>
           </div>
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full ${isExecuting ? 'bg-green-500 animate-pulse' : 'bg-slate-600'}`}></div>
@@ -394,12 +465,35 @@ export default function App() {
 
               <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                 <p className="text-sm text-blue-300">
-                  <strong>Not:</strong> Sunucu ekleme/düzenleme formunda grup seçimi yakında eklenecek!
+                  💡 <strong>İpucu:</strong> Sunucu eklerken veya düzenlerken birden fazla gruba ekleyebilirsiniz!
                 </p>
               </div>
             </div>
           </div>
         )}
+
+        {/* Footer */}
+        <footer className="mt-12 pb-8 border-t border-slate-700/50 pt-8">
+          <div className="text-center space-y-3">
+            <p className="text-slate-400 text-sm">
+              Made with <span className="text-red-500">❤️</span> by{' '}
+              <a
+                href="https://github.com/halilibrahimd27"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              >
+                FOGETO
+              </a>
+            </p>
+            <p className="text-slate-500 text-xs">
+              Server Orchestrator v2.0 • SSH Task Automation & Monitoring Platform
+            </p>
+            <p className="text-slate-600 text-xs">
+              © {new Date().getFullYear()} Fogeto All rights reserved
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
   );
