@@ -127,8 +127,9 @@ exports.getStats = async (req, res) => {
     const taskCount = await query('SELECT COUNT(*) as count FROM tasks');
     const logCount = await query('SELECT COUNT(*) as count FROM execution_logs');
 
+    // SQLite compatible date queries
     const recentLogs = await query(
-      'SELECT COUNT(*) as count FROM execution_logs WHERE started_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+      "SELECT COUNT(*) as count FROM execution_logs WHERE started_at > datetime('now', '-24 hours')"
     );
 
     const successRate = await query(`
@@ -136,7 +137,7 @@ exports.getStats = async (req, res) => {
         COUNT(*) as total,
         SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful
       FROM execution_logs
-      WHERE started_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+      WHERE started_at > datetime('now', '-7 days')
     `);
 
     res.json({
@@ -150,6 +151,7 @@ exports.getStats = async (req, res) => {
     });
 
   } catch (err) {
+    console.error('Backup stats error:', err);
     res.status(500).json({ error: 'İstatistikler alınırken hata oluştu: ' + err.message });
   }
 };

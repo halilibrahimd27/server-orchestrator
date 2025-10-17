@@ -255,24 +255,50 @@ export const backupAPI = {
 
 // WebSocket connection
 export const connectWebSocket = (onMessage) => {
-  const ws = new WebSocket('ws://localhost:8080');
+  let ws = null;
+  let reconnectTimeout = null;
 
-  ws.onopen = () => {
-    console.log('✅ WebSocket connected');
+  const connect = () => {
+    try {
+      ws = new WebSocket('ws://localhost:8080');
+
+      ws.onopen = () => {
+        console.log('✅ WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          onMessage(data);
+        } catch (err) {
+          console.error('WebSocket message parse error:', err);
+        }
+      };
+
+      ws.onerror = (error) => {
+        // Suppress error logging - it's expected on initial connection
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected - reconnecting in 3s...');
+        reconnectTimeout = setTimeout(connect, 3000);
+      };
+    } catch (err) {
+      console.error('WebSocket connection error:', err);
+      reconnectTimeout = setTimeout(connect, 3000);
+    }
   };
 
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    onMessage(data);
-  };
+  connect();
 
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
+  return {
+    close: () => {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      if (ws) {
+        ws.close();
+      }
+    }
   };
-
-  ws.onclose = () => {
-    console.log('WebSocket disconnected');
-  };
-
-  return ws;
 };
