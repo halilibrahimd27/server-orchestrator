@@ -102,24 +102,44 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
 
   const quickTemplates = [
     {
-      name: 'Redis Güncelleme 7 -> 8.2.2',
-      command: 'docker pull redis:8.2.2-alpine && docker stop redis-container && docker rm redis-container && docker run -d --name redis-container -p 6379:6379 redis:8.2.2-alpine',
-      description: 'Redis container güncellemesi'
+      name: '🐧 Sistem Güncelleme (Ubuntu/Debian)',
+      command: 'apt update && apt upgrade -y && apt autoremove -y && apt clean',
+      description: 'Sistem paketlerini güncelle ve temizle'
     },
     {
-      name: 'PostgreSQL Güncelleme',
-      command: 'docker pull postgres:16-alpine && docker stop postgres-container && docker rm postgres-container && docker run -d --name postgres-container -e POSTGRES_PASSWORD=mypass -p 5432:5432 postgres:16-alpine',
-      description: 'PostgreSQL container güncellemesi'
+      name: '🎩 Sistem Güncelleme (CentOS/RHEL)',
+      command: 'yum update -y && yum clean all',
+      description: 'YUM ile sistem güncellemesi'
     },
     {
-      name: 'Sistem Güncelleme (Ubuntu)',
-      command: 'apt update && apt upgrade -y && apt autoremove -y',
-      description: 'Ubuntu sistem güncellemesi'
+      name: '🐳 Docker Kurulumu',
+      command: 'curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh && systemctl start docker && systemctl enable docker && docker --version',
+      description: 'Docker CE kurulumu ve otomatik başlatma'
     },
     {
-      name: 'Docker Compose Deploy',
+      name: '🔄 Docker Compose Deploy',
       command: 'cd /opt/myapp && docker-compose pull && docker-compose up -d --force-recreate',
       description: 'Docker Compose ile uygulama güncellemesi'
+    },
+    {
+      name: '🌐 Nginx Yeniden Başlat',
+      command: 'nginx -t && systemctl reload nginx',
+      description: 'Nginx config test ve reload'
+    },
+    {
+      name: '🗑️ Disk Temizleme',
+      command: 'apt clean && journalctl --vacuum-time=7d && docker system prune -af --volumes',
+      description: 'Log ve Docker cache temizliği'
+    },
+    {
+      name: '📊 Sistem Bilgisi',
+      command: 'echo "=== CPU ===" && lscpu | grep "Model name\\|CPU(s)\\|Thread" && echo "\\n=== Memory ===" && free -h && echo "\\n=== Disk ===" && df -h && echo "\\n=== Uptime ===" && uptime',
+      description: 'Detaylı sistem bilgisi raporu'
+    },
+    {
+      name: '🔥 Firewall Kurulumu (UFW)',
+      command: 'apt install -y ufw && ufw default deny incoming && ufw default allow outgoing && ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable && ufw status',
+      description: 'UFW firewall kurulumu ve temel kurallar'
     }
   ];
 
@@ -135,18 +155,23 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
   };
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm p-4 rounded-xl border border-slate-700 max-h-[500px] overflow-y-auto custom-scrollbar">
-      <div className="flex items-center justify-between mb-3 sticky top-0 bg-slate-900 pb-2">
-        <h3 className="text-base font-semibold text-white">
-          {isEdit ? 'Görevi Düzenle' : 'Yeni Görev Ekle'}
-        </h3>
-        <button
-          onClick={onCancel}
-          className="p-1 hover:bg-slate-800 rounded transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+          <h3 className="text-lg font-semibold text-white">
+            {isEdit ? 'Görevi Düzenle' : 'Yeni Görev Ekle'}
+          </h3>
+          <button
+            onClick={onCancel}
+            className="p-1 hover:bg-slate-800 rounded transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
 
       {/* Quick Templates - sadece yeni görev eklerken göster */}
       {!isEdit && (
@@ -221,22 +246,32 @@ const TaskForm = ({ onSubmit, onCancel, initialData = null, isEdit = false }) =>
           </p>
         </div>
 
-        <div className="flex gap-2 pt-2 sticky bottom-0 bg-slate-900 pb-1">
+      </form>
+        </div>
+
+        {/* Footer Buttons */}
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-700 bg-slate-900">
           <button
-            type="submit"
-            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-500/20"
+            onClick={(e) => {
+              e.preventDefault();
+              const form = e.target.closest('.bg-slate-900').querySelector('form');
+              if (form) {
+                form.requestSubmit();
+              }
+            }}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-purple-500/30"
           >
             {isEdit ? 'Güncelle' : 'Görev Ekle'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors"
+            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
           >
             İptal
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
@@ -298,26 +333,22 @@ export default function TaskList({
         </button>
       </div>
 
-      {/* Add/Edit Task Form */}
+      {/* Add/Edit Task Form - Modal */}
       {showAddForm && (
-        <div className="mb-4">
-          <TaskForm
-            onSubmit={handleAddTask}
-            onCancel={() => setShowAddForm(false)}
-            isEdit={false}
-          />
-        </div>
+        <TaskForm
+          onSubmit={handleAddTask}
+          onCancel={() => setShowAddForm(false)}
+          isEdit={false}
+        />
       )}
 
       {editingTask && (
-        <div className="mb-4">
-          <TaskForm
-            onSubmit={handleEditTask}
-            onCancel={() => setEditingTask(null)}
-            initialData={editingTask}
-            isEdit={true}
-          />
-        </div>
+        <TaskForm
+          onSubmit={handleEditTask}
+          onCancel={() => setEditingTask(null)}
+          initialData={editingTask}
+          isEdit={true}
+        />
       )}
 
       {/* Task List */}

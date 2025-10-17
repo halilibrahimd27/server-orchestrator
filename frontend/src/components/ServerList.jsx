@@ -163,20 +163,24 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, gr
   };
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm p-6 rounded-xl border border-slate-700 space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
-          {isEdit ? 'Sunucu Düzenle' : 'Yeni Sunucu Ekle'}
-        </h3>
-        <button
-          onClick={onCancel}
-          className="p-1 hover:bg-slate-800 rounded transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+          <h3 className="text-lg font-semibold text-white">
+            {isEdit ? 'Sunucu Düzenle' : 'Yeni Sunucu Ekle'}
+          </h3>
+          <button
+            onClick={onCancel}
+            className="p-1 hover:bg-slate-800 rounded transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <form onSubmit={handleSubmit} id="server-form" className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Sunucu Adı *
@@ -351,9 +355,14 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, gr
           </div>
         )}
 
-        <div className="flex gap-3 pt-2">
+          </form>
+        </div>
+
+        {/* Footer Buttons */}
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-700 bg-slate-900">
           <button
             type="submit"
+            form="server-form"
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-blue-500/30"
           >
             {isEdit ? 'Güncelle' : 'Sunucu Ekle'}
@@ -366,7 +375,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, gr
             İptal
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
@@ -496,28 +505,24 @@ export default function ServerList({
         </div>
       )}
 
-      {/* Sunucu Ekleme/Düzenleme Formu */}
+      {/* Sunucu Ekleme/Düzenleme Formu - Modal */}
       {showAddForm && (
-        <div className="mb-4">
-          <ServerForm
-            onSubmit={handleAddServer}
-            onCancel={() => setShowAddForm(false)}
-            isEdit={false}
-            groups={groups}
-          />
-        </div>
+        <ServerForm
+          onSubmit={handleAddServer}
+          onCancel={() => setShowAddForm(false)}
+          isEdit={false}
+          groups={groups}
+        />
       )}
 
       {editingServer && (
-        <div className="mb-4">
-          <ServerForm
-            onSubmit={handleEditServer}
-            onCancel={() => setEditingServer(null)}
-            initialData={editingServer}
-            isEdit={true}
-            groups={groups}
-          />
-        </div>
+        <ServerForm
+          onSubmit={handleEditServer}
+          onCancel={() => setEditingServer(null)}
+          initialData={editingServer}
+          isEdit={true}
+          groups={groups}
+        />
       )}
 
       {/* Sunucu Listesi */}

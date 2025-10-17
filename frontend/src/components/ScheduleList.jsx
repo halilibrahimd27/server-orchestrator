@@ -160,8 +160,7 @@ const ScheduleForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, 
     enabled: true
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (!formData.name || !formData.task_id || formData.server_ids.length === 0 || !formData.schedule_value) {
       alert('Tüm alanları doldurun ve en az bir sunucu seçin!');
       return;
@@ -180,17 +179,20 @@ const ScheduleForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, 
   };
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm p-6 rounded-xl border border-slate-700 space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-white">
-          {isEdit ? 'Zamanlamayı Düzenle' : 'Yeni Zamanlama Ekle'}
-        </h3>
-        <button onClick={onCancel} className="p-1 hover:bg-slate-800 rounded transition-colors">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+          <h3 className="text-lg font-semibold text-white">
+            {isEdit ? 'Zamanlamayı Düzenle' : 'Yeni Zamanlama Ekle'}
+          </h3>
+          <button onClick={onCancel} className="p-1 hover:bg-slate-800 rounded transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Zamanlama Adı *
@@ -291,7 +293,7 @@ const ScheduleForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, 
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Sunucular * ({formData.server_ids.length} seçili)
           </label>
-          <div className="max-h-48 overflow-y-auto bg-slate-800 border border-slate-600 rounded-lg p-2 space-y-1">
+          <div className="max-h-32 overflow-y-auto bg-slate-800 border border-slate-600 rounded-lg p-2 space-y-1">
             {servers.length === 0 ? (
               <p className="text-sm text-slate-500 p-2">Henüz sunucu yok</p>
             ) : (
@@ -318,22 +320,24 @@ const ScheduleForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, 
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="enabled"
-            checked={formData.enabled}
-            onChange={(e) => setFormData({...formData, enabled: e.target.checked})}
-            className="w-4 h-4"
-          />
-          <label htmlFor="enabled" className="text-sm text-slate-300">
-            Zamanlamayı hemen etkinleştir
-          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="enabled"
+              checked={formData.enabled}
+              onChange={(e) => setFormData({...formData, enabled: e.target.checked})}
+              className="w-4 h-4"
+            />
+            <label htmlFor="enabled" className="text-sm text-slate-300">
+              Zamanlamayı hemen etkinleştir
+            </label>
+          </div>
         </div>
 
-        <div className="flex gap-3 pt-2">
+        {/* Footer Buttons */}
+        <div className="flex gap-3 px-6 py-4 border-t border-slate-700 bg-slate-900">
           <button
-            type="submit"
+            onClick={handleSubmit}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg transition-all shadow-lg shadow-blue-500/30"
           >
             {isEdit ? 'Güncelle' : 'Zamanlama Ekle'}
@@ -346,7 +350,7 @@ const ScheduleForm = ({ onSubmit, onCancel, initialData = null, isEdit = false, 
             İptal
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
@@ -407,30 +411,26 @@ export default function ScheduleList({
         </button>
       </div>
 
-      {/* Zamanlama Ekleme/Düzenleme Formu */}
+      {/* Zamanlama Ekleme/Düzenleme Formu - Modal */}
       {showAddForm && (
-        <div className="mb-4">
-          <ScheduleForm
-            onSubmit={handleAddSchedule}
-            onCancel={() => setShowAddForm(false)}
-            isEdit={false}
-            tasks={tasks}
-            servers={servers}
-          />
-        </div>
+        <ScheduleForm
+          onSubmit={handleAddSchedule}
+          onCancel={() => setShowAddForm(false)}
+          isEdit={false}
+          tasks={tasks}
+          servers={servers}
+        />
       )}
 
       {editingSchedule && (
-        <div className="mb-4">
-          <ScheduleForm
-            onSubmit={handleEditSchedule}
-            onCancel={() => setEditingSchedule(null)}
-            initialData={editingSchedule}
-            isEdit={true}
-            tasks={tasks}
-            servers={servers}
-          />
-        </div>
+        <ScheduleForm
+          onSubmit={handleEditSchedule}
+          onCancel={() => setEditingSchedule(null)}
+          initialData={editingSchedule}
+          isEdit={true}
+          tasks={tasks}
+          servers={servers}
+        />
       )}
 
       {/* Zamanlama Listesi */}

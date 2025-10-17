@@ -119,6 +119,22 @@ export const groupAPI = {
     return res.json();
   },
 
+  update: async (id, data) => {
+    const res = await fetch(`${API_URL}/groups/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/groups/${id}`, {
+      method: 'DELETE'
+    });
+    return res.json();
+  },
+
   getServers: async (groupId) => {
     const res = await fetch(`${API_URL}/groups/${groupId}/servers`);
     return res.json();
@@ -199,6 +215,40 @@ export const scheduleAPI = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled })
     });
+    return res.json();
+  }
+};
+
+// Backup & Export/Import (NEW)
+export const backupAPI = {
+  exportConfig: async (includePasswords = false) => {
+    const res = await fetch(`${API_URL}/backup/export?includePasswords=${includePasswords}`);
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `server-orchestrator-backup-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    return { success: true };
+  },
+
+  importConfig: async (file, replaceExisting = false) => {
+    const fileContent = await file.text();
+    const data = JSON.parse(fileContent);
+
+    const res = await fetch(`${API_URL}/backup/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, replaceExisting })
+    });
+    return res.json();
+  },
+
+  getStats: async () => {
+    const res = await fetch(`${API_URL}/backup/stats`);
     return res.json();
   }
 };

@@ -9,12 +9,15 @@ const backupRoutes = require('./routes/backupRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const healthRoutes = require('./routes/healthRoutes');
+const terminalRoutes = require('./routes/terminalRoutes');
+const fileRoutes = require('./routes/fileRoutes');
 const { startScheduler } = require('./services/scheduler');
 const { startHealthMonitoring } = require('./services/healthMonitor');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const WS_PORT = process.env.WS_PORT || 8080;
+const TERMINAL_WS_PORT = process.env.TERMINAL_WS_PORT || 8081;
 
 // Middleware
 app.use(cors());
@@ -34,6 +37,8 @@ app.use('/api/backup', backupRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/terminal', terminalRoutes);
+app.use('/api/files', fileRoutes);
 
 // Sağlık kontrolü
 app.get('/health', (req, res) => {
@@ -72,11 +77,115 @@ global.broadcastLog = (data) => {
   });
 };
 
+// Terminal WebSocket Server (SSH için)
+const terminalWss = new WebSocket.Server({ port: TERMINAL_WS_PORT });
+const { Client } = require('ssh2');
+const { query } = require('./config/database');
+const { decrypt } = require('./services/encryption');
+
+terminalWss.on('connection', async (ws, req) => {
+  console.log('🖥️  Terminal WebSocket bağlandı');
+
+  // URL'den serverId al (ws://localhost:8081?serverId=1)
+  const params = new URLSearchParams(req.url.split('?')[1]);
+  const serverId = params.get('serverId');
+
+  if (!serverId) {
+    ws.send('ERROR: Server ID gerekli\r\n');
+    ws.close();
+    return;
+  }
+
+  try {
+    // Sunucu bilgilerini al
+    const servers = await query('SELECT * FROM servers WHERE id = ?', [serverId]);
+    if (servers.length === 0) {
+      ws.send('ERROR: Sunucu bulunamadı\r\n');
+      ws.close();
+      return;
+    }
+
+    const server = servers[0];
+    const password = server.password ? decrypt(server.password) : null;
+    const privateKey = server.private_key ? decrypt(server.private_key) : null;
+
+    // SSH bağlantısı oluştur
+    const conn = new Client();
+
+    conn.on('ready', () => {
+      ws.send(`✅ ${server.name} sunucusuna bağlanıldı\r\n\r\n`);
+
+      // Shell aç
+      conn.shell({ term: 'xterm-256color', rows: 24, cols: 80 }, (err, stream) => {
+        if (err) {
+          ws.send(`ERROR: ${err.message}\r\n`);
+          ws.close();
+          return;
+        }
+
+        // SSH çıktısını WebSocket'e gönder
+        stream.on('data', (data) => {
+          ws.send(data.toString('utf-8'));
+        });
+
+        stream.stderr.on('data', (data) => {
+          ws.send(data.toString('utf-8'));
+        });
+
+        // WebSocket'ten gelen veriyi SSH'a gönder
+        ws.on('message', (msg) => {
+          stream.write(msg);
+        });
+
+        // WebSocket kapanınca SSH'ı kapat
+        ws.on('close', () => {
+          stream.end();
+          conn.end();
+          console.log('🖥️  Terminal bağlantısı kapatıldı');
+        });
+
+        // SSH kapanınca WebSocket'i kapat
+        stream.on('close', () => {
+          ws.close();
+          conn.end();
+        });
+      });
+    });
+
+    conn.on('error', (err) => {
+      ws.send(`\r\nERROR: ${err.message}\r\n`);
+      ws.close();
+    });
+
+    // Bağlan
+    const connectionInfo = {
+      host: server.host,
+      port: server.port || 22,
+      username: server.username,
+      readyTimeout: 30000,
+      keepaliveInterval: 10000
+    };
+
+    if (password) {
+      connectionInfo.password = password;
+    } else if (privateKey) {
+      connectionInfo.privateKey = privateKey;
+    }
+
+    conn.connect(connectionInfo);
+
+  } catch (err) {
+    ws.send(`ERROR: ${err.message}\r\n`);
+    ws.close();
+  }
+});
+
 // Veritabanı başlatma
 initDatabase().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Sunucu çalışıyor: http://localhost:${PORT}`);
-    console.log(`🔌 WebSocket çalışıyor: ws://localhost:${WS_PORT}`);
+    console.log(`🔌 WebSocket (Logs): ws://localhost:${WS_PORT}`);
+    console.log(`🖥️  WebSocket (Terminal): ws://localhost:${TERMINAL_WS_PORT}`);
     console.log(`📊 Veritabanı: ${process.env.DB_TYPE || 'sqlite'}`);
 
     // Scheduler'ı başlat

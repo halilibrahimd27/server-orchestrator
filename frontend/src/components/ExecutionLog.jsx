@@ -84,6 +84,7 @@ const ExecutionStats = ({ logs }) => {
 export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
   const [filter, setFilter] = useState('all'); // 'all', 'error', 'success', 'info'
   const [autoScroll, setAutoScroll] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const logContainerRef = useRef(null);
 
   // Auto-scroll to bottom when new logs arrive
@@ -93,9 +94,9 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
     }
   }, [logs, autoScroll]);
 
-  const filteredLogs = filter === 'all'
-    ? logs
-    : logs.filter(log => log.type === filter);
+  const filteredLogs = logs
+    .filter(log => filter === 'all' || log.type === filter)
+    .filter(log => searchTerm === '' || log.message.toLowerCase().includes(searchTerm.toLowerCase()) || (log.server && log.server.toLowerCase().includes(searchTerm.toLowerCase())));
 
   const downloadLogs = () => {
     const logText = logs.map(log =>
@@ -184,8 +185,26 @@ export default function ExecutionLog({ logs, isExecuting, onClearLogs }) {
         </div>
       </div>
 
+      {/* Search Bar */}
+      {logs.length > 0 && (
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Log içinde ara... (mesaj veya sunucu adı)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+          />
+          {searchTerm && (
+            <p className="text-xs text-slate-400 mt-2">
+              {filteredLogs.length} / {logs.length} log gösteriliyor
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Stats */}
-      {logs.length > 0 && <ExecutionStats logs={logs} />}
+      {logs.length > 0 && <ExecutionStats logs={filteredLogs} />}
 
       {/* Log Container */}
       <div
