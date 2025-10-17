@@ -113,15 +113,19 @@ terminalWss.on('connection', async (ws, req) => {
     const conn = new Client();
 
     conn.on('ready', () => {
+      console.log(`✅ SSH connection established to ${server.host}`);
       ws.send(`✅ ${server.name} sunucusuna bağlanıldı\r\n\r\n`);
 
       // Shell aç
       conn.shell({ term: 'xterm-256color', rows: 24, cols: 80 }, (err, stream) => {
         if (err) {
+          console.error(`❌ Shell error: ${err.message}`);
           ws.send(`ERROR: ${err.message}\r\n`);
           ws.close();
           return;
         }
+
+        console.log('✅ Shell opened successfully');
 
         // SSH çıktısını WebSocket'e gönder
         stream.on('data', (data) => {
@@ -153,6 +157,7 @@ terminalWss.on('connection', async (ws, req) => {
     });
 
     conn.on('error', (err) => {
+      console.error(`❌ SSH connection error: ${err.message}`);
       ws.send(`\r\nERROR: ${err.message}\r\n`);
       ws.close();
     });

@@ -1,22 +1,87 @@
 import { useState, useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon, X, Upload, Download, FolderOpen, Power } from 'lucide-react';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import '@xterm/xterm/css/xterm.css';
 
-export default function Terminal({ servers }) {
+export default function TerminalComponent({ servers }) {
   const [selectedServer, setSelectedServer] = useState(null);
   const [showFileManager, setShowFileManager] = useState(false);
   const [connected, setConnected] = useState(false);
   const terminalRef = useRef(null);
   const wsRef = useRef(null);
-  const [terminalOutput, setTerminalOutput] = useState('');
+  const xtermRef = useRef(null);
+  const fitAddonRef = useRef(null);
 
   // Terminal bağlantısı
   const connectToServer = (server) => {
     setSelectedServer(server);
     setConnected(false);
-    setTerminalOutput('');
+  };
+
+  // selectedServer değişince terminal kur
+  useEffect(() => {
+    if (!selectedServer || !terminalRef.current) return;
+
+    console.log('🚀 Setting up terminal for server:', selectedServer.name);
+
+    // Eski terminal'i temizle
+    if (xtermRef.current) {
+      xtermRef.current.dispose();
+    }
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
+    // Yeni xterm instance oluştur
+    const term = new Terminal({
+      cursorBlink: true,
+      cursorStyle: 'block',
+      fontFamily: 'Consolas, Monaco, "Courier New", monospace, "Apple Color Emoji"',
+      fontSize: 14,
+      lineHeight: 1.2,
+      theme: {
+        background: '#000000',
+        foreground: '#00ff00',
+        cursor: '#00ff00',
+        cursorAccent: '#000000',
+        black: '#000000',
+        red: '#ff5555',
+        green: '#50fa7b',
+        yellow: '#f1fa8c',
+        blue: '#bd93f9',
+        magenta: '#ff79c6',
+        cyan: '#8be9fd',
+        white: '#bbbbbb',
+        brightBlack: '#555555',
+        brightRed: '#ff6e67',
+        brightGreen: '#5af78e',
+        brightYellow: '#f4f99d',
+        brightBlue: '#caa9fa',
+        brightMagenta: '#ff92d0',
+        brightCyan: '#9aedfe',
+        brightWhite: '#ffffff'
+      },
+      allowProposedApi: true,
+      cols: 120,
+      rows: 30
+    });
+
+    // Fit addon ekle
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+
+    // Terminal'i DOM'a bağla
+    console.log('✅ Terminal ref found, opening xterm...');
+    term.open(terminalRef.current);
+    fitAddon.fit();
+    console.log('✅ XTerm opened and fitted');
+
+    xtermRef.current = term;
+    fitAddonRef.current = fitAddon;
 
     // WebSocket bağlantısı
-    const ws = new WebSocket(`ws://localhost:8081?serverId=${server.id}`);
+    const ws = new WebSocket(`ws://localhost:8081?serverId=${selectedServer.id}`);
 
     ws.onopen = () => {
       setConnected(true);
@@ -24,23 +89,50 @@ export default function Terminal({ servers }) {
     };
 
     ws.onmessage = (event) => {
-      // Gelen veriyi terminale ekle
-      setTerminalOutput(prev => prev + event.data);
+      // SSH'tan gelen veriyi xterm'e yaz
+      term.write(event.data);
     };
 
     ws.onerror = (error) => {
       console.error('❌ WebSocket hatası:', error);
-      setTerminalOutput(prev => prev + '\r\n\r\n❌ Bağlantı hatası!\r\n');
+      term.write('\r\n\r\n\x1b[31m❌ Bağlantı hatası!\x1b[0m\r\n');
     };
 
     ws.onclose = () => {
       setConnected(false);
-      setTerminalOutput(prev => prev + '\r\n\r\n🔴 Bağlantı kapatıldı\r\n');
+      term.write('\r\n\r\n\x1b[31m🔴 Bağlantı kapatıldı\x1b[0m\r\n');
       console.log('🔴 Terminal bağlantısı kapandı');
     };
 
+    // Terminal'den gelen input'u WebSocket'e gönder
+    term.onData((data) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(data);
+      }
+    });
+
     wsRef.current = ws;
-  };
+
+    // Window resize olduğunda terminali yeniden boyutlandır
+    const handleResize = () => {
+      if (fitAddonRef.current) {
+        fitAddonRef.current.fit();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (ws) {
+        ws.close();
+      }
+      if (term) {
+        term.dispose();
+      }
+    };
+  }, [selectedServer]);
 
   // Bağlantıyı kes
   const disconnect = () => {
@@ -48,52 +140,13 @@ export default function Terminal({ servers }) {
       wsRef.current.close();
       wsRef.current = null;
     }
+    if (xtermRef.current) {
+      xtermRef.current.dispose();
+      xtermRef.current = null;
+    }
     setSelectedServer(null);
     setConnected(false);
-    setTerminalOutput('');
   };
-
-  // Klavye input'u yakala
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (!connected || !wsRef.current) return;
-
-      // Özel tuşlar
-      if (e.key === 'Enter') {
-        wsRef.current.send('\r');
-      } else if (e.key === 'Backspace') {
-        wsRef.current.send('\x7F');
-      } else if (e.key === 'Tab') {
-        e.preventDefault();
-        wsRef.current.send('\t');
-      } else if (e.ctrlKey && e.key === 'c') {
-        e.preventDefault();
-        wsRef.current.send('\x03'); // Ctrl+C
-      } else if (e.ctrlKey && e.key === 'd') {
-        e.preventDefault();
-        wsRef.current.send('\x04'); // Ctrl+D
-      } else if (e.key.length === 1) {
-        wsRef.current.send(e.key);
-      }
-    };
-
-    if (terminalRef.current) {
-      terminalRef.current.addEventListener('keydown', handleKeyPress);
-    }
-
-    return () => {
-      if (terminalRef.current) {
-        terminalRef.current.removeEventListener('keydown', handleKeyPress);
-      }
-    };
-  }, [connected]);
-
-  // Terminal'e focus ver
-  useEffect(() => {
-    if (connected && terminalRef.current) {
-      terminalRef.current.focus();
-    }
-  }, [connected]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -101,8 +154,20 @@ export default function Terminal({ servers }) {
       if (wsRef.current) {
         wsRef.current.close();
       }
+      if (xtermRef.current) {
+        xtermRef.current.dispose();
+      }
     };
   }, []);
+
+  // Terminal görünür olduğunda boyutlandır
+  useEffect(() => {
+    if (selectedServer && !showFileManager && fitAddonRef.current && xtermRef.current) {
+      setTimeout(() => {
+        fitAddonRef.current.fit();
+      }, 100);
+    }
+  }, [showFileManager]);
 
   return (
     <div className="bg-slate-800/50 backdrop-blur rounded-xl border border-slate-700 h-full flex flex-col">
@@ -181,26 +246,20 @@ export default function Terminal({ servers }) {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div
             ref={terminalRef}
-            tabIndex={0}
-            className="flex-1 overflow-auto p-4 font-mono text-sm bg-black text-green-400 cursor-text focus:outline-none focus:ring-2 focus:ring-green-500/50"
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-              fontFamily: 'Consolas, Monaco, "Courier New", monospace'
-            }}
-          >
-            {terminalOutput || 'Bağlanıyor...'}
-          </div>
+            className="flex-1 overflow-hidden bg-black"
+            style={{ padding: '8px', minHeight: '400px' }}
+          />
 
           {/* Info Bar */}
           <div className="px-4 py-2 bg-slate-900 border-t border-slate-700 text-xs text-slate-500">
             <div className="flex items-center justify-between">
               <div>
-                💡 <strong>İpucu:</strong> Terminal'e tıklayın ve yazmaya başlayın. Enter, Backspace, Tab, Ctrl+C desteklenir.
+                💡 <strong>İpucu:</strong> Tam terminal emülasyonu aktif. Tüm tuşlar ve komutlar desteklenir.
               </div>
               <div className="flex gap-4">
                 <span>Ctrl+C: İptal</span>
                 <span>Ctrl+D: Çıkış</span>
+                <span>Tab: Otomatik tamamlama</span>
               </div>
             </div>
           </div>
