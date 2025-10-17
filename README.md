@@ -33,227 +33,31 @@ chmod +x start.sh
 ./start.sh
 ```
 
-<img width="1710" height="1107" alt="image" src="https://github.com/user-attachments/assets/b4feece1-10f3-444f-b61a-2e4ef397730f" />
+## Aynı anda birden fazla sunucuda görev çalıştırın 
 
+<img width="1710" height="983" alt="image" src="https://github.com/user-attachments/assets/1e0ec87e-ae48-48b3-85a9-2bc83e7e77ea" />
 
+## Sunucuları gruplara göre filtreleyin size özel gruplar oluşturun
 
-### Manuel Kurulum Gereksinimler
+<img width="1709" height="988" alt="image" src="https://github.com/user-attachments/assets/3eb9b039-e0c4-44cd-9ca1-ffee6957f84e" />
 
-- Node.js 18+
-- npm veya yarn
+## Sunucunuza özel cronjob'lar oluşturun
 
-### 1. Backend Kurulumu
+<img width="1710" height="988" alt="image" src="https://github.com/user-attachments/assets/580e512d-8f5f-4071-a750-8c1a3457757b" />
 
-```bash
-cd backend
-npm install
+## Sunucunuzu monitoring edin 
 
-# .env dosyası oluştur
-cp .env.example .env
+<img width="1710" height="990" alt="image" src="https://github.com/user-attachments/assets/b3d768d7-e217-482f-9d01-24c05da3b0cd" />
 
-# .env dosyasını düzenle (önemli!)
-nano .env
+## Gerekli kısımlarda ssh ile terminale bağlanın.
 
-# Migration'ları çalıştır (Yeni tablolar için)
-npm run migrate
+<img width="1705" height="976" alt="image" src="https://github.com/user-attachments/assets/5b487a53-81a3-4d79-bfb0-80c70d7c75fb" />
 
-# Backend'i başlat
-npm run dev
-```
+<img width="1709" height="996" alt="image" src="https://github.com/user-attachments/assets/f04a7e5e-8b1e-4adb-9deb-f51ed4c1a4c7" />
 
-### 2. Frontend Kurulumu
+## Çalıştırdığınız komutlarda detaylı log alın
 
-```bash
-cd frontend
-npm install
-
-# Frontend'i başlat
-npm run dev
-```
-
-## 🔧 Konfigürasyon
-
-### Backend (.env)
-
-```env
-PORT=3000
-WS_PORT=8080
-DB_TYPE=sqlite
-DB_PATH=/data/database.sqlite
-JWT_SECRET=your-super-secret-jwt-key-change-this
-ENCRYPTION_KEY=your-32-character-encryption-key-here
-HEALTH_CHECK_INTERVAL=5  # Dakika cinsinden
-SCHEDULER_ENABLED=true
-```
-
-**ÖNEMLİ:**
-- `ENCRYPTION_KEY` tam olarak 32 karakter olmalı!
-- `JWT_SECRET` minimum 32 karakter önerilir
-
-## 🎯 Kullanım
-
-1. **Sunucu Ekle**: Sol panelden "+" butonuna tıklayın
-   - Sunucu adı, host, port, kullanıcı adı ve şifre girin
-   - SSH key de kullanabilirsiniz
-
-2. **Görev Oluştur**: Sağ panelden görev ekleyin
-   - Görev adı ve komut girin
-   - Örnek: `docker pull redis:8.2.2-alpine`
-
-3. **Çalıştır**: 
-   - Sunucuları seçin
-   - Görev seçin
-   - "Görevi Çalıştır" butonuna tıklayın
-
-## 📚 API Endpoints
-
-### Servers
-
-```
-GET    /api/servers          # Tüm sunucuları listele
-POST   /api/servers          # Yeni sunucu ekle
-PUT    /api/servers/:id      # Sunucu güncelle
-DELETE /api/servers/:id      # Sunucu sil
-POST   /api/servers/:id/test # Bağlantı testi
-```
-
-### Tasks
-
-```
-GET    /api/tasks            # Tüm görevleri listele
-POST   /api/tasks            # Yeni görev ekle
-PUT    /api/tasks/:id        # Görev güncelle
-DELETE /api/tasks/:id        # Görev sil
-POST   /api/tasks/execute    # Görevi çalıştır
-GET    /api/tasks/logs/all   # Execution logları
-```
-
-### Server Groups (Yeni!)
-
-```
-GET    /api/groups                      # Tüm grupları listele
-POST   /api/groups                      # Yeni grup oluştur
-PUT    /api/groups/:id                  # Grup güncelle
-DELETE /api/groups/:id                  # Grup sil
-POST   /api/groups/members              # Gruba sunucu ekle
-DELETE /api/groups/:groupId/members/:serverId  # Gruptan sunucu çıkar
-GET    /api/groups/:id/servers          # Grubun sunucularını listele
-GET    /api/groups/server/:serverId     # Sunucunun gruplarını listele
-```
-
-### Scheduled Tasks (Yeni!)
-
-```
-GET    /api/schedules           # Tüm zamanlanmış görevleri listele
-POST   /api/schedules           # Yeni zamanlanmış görev oluştur
-PUT    /api/schedules/:id       # Zamanlanmış görevi güncelle
-DELETE /api/schedules/:id       # Zamanlanmış görevi sil
-PATCH  /api/schedules/:id/toggle # Aktif/Pasif durumu değiştir
-```
-
-### Health Monitoring (Yeni!)
-
-```
-GET    /api/health/summary                # Genel sağlık özeti
-GET    /api/health/metrics                # Tüm sunucu metrikleri
-GET    /api/health/metrics/:serverId      # Belirli sunucu metrikleri
-GET    /api/health/metrics/:serverId/history # Metrik geçmişi
-POST   /api/health/collect/:serverId?     # Manuel metrik toplama
-```
-
-### Görev Çalıştırma
-
-```json
-POST /api/tasks/execute
-{
-  "taskId": 1,
-  "serverIds": [1, 2, 3],
-  "parallel": true
-}
-```
-
-## 🔒 Güvenlik
-
-- Tüm şifreler AES-256 ile şifrelenir
-- SSH bağlantıları TLS ile korunur
-- WebSocket bağlantısı için authentication eklenebilir
-
-## 🛠️ Geliştirme
-
-### Yeni Özellik Eklemek
-
-1. Backend'de controller ve route ekleyin
-2. Frontend'de API service'i güncelleyin
-3. UI component'ini oluşturun
-
-### Database Schema
-
-```sql
--- Servers
-CREATE TABLE servers (
-  id INTEGER PRIMARY KEY,
-  name TEXT UNIQUE,
-  host TEXT,
-  port INTEGER,
-  username TEXT,
-  password TEXT,  -- encrypted
-  private_key TEXT,  -- encrypted
-  status TEXT,
-  created_at DATETIME,
-  updated_at DATETIME
-);
-
--- Tasks
-CREATE TABLE tasks (
-  id INTEGER PRIMARY KEY,
-  name TEXT,
-  description TEXT,
-  command TEXT,
-  created_at DATETIME,
-  updated_at DATETIME
-);
-
--- Execution Logs
-CREATE TABLE execution_logs (
-  id INTEGER PRIMARY KEY,
-  task_id INTEGER,
-  server_id INTEGER,
-  status TEXT,
-  output TEXT,
-  error TEXT,
-  started_at DATETIME,
-  completed_at DATETIME
-);
-```
-
-## 🚀 Örnek Kullanım Senaryoları
-
-### Redis Güncelleme
-
-```bash
-# Görev: Redis 7 → 8.2.2
-docker pull redis:8.2.2-alpine && \
-docker stop redis-container && \
-docker rm redis-container && \
-docker run -d --name redis-container -p 6379:6379 redis:8.2.2-alpine
-```
-
-### Node.js Uygulaması Deploy
-
-```bash
-# Görev: Deploy latest
-cd /opt/myapp && \
-git pull origin main && \
-npm install && \
-pm2 restart myapp
-```
-
-### Sistem Güncelleme
-
-```bash
-# Görev: System update
-apt update && apt upgrade -y && apt autoremove -y
-```
+<img width="1710" height="990" alt="image" src="https://github.com/user-attachments/assets/88f231d1-72d9-4e03-942a-af621f207a7b" />
 
 ## 🤝 Katkıda Bulunma
 
