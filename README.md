@@ -13,16 +13,12 @@ Web tabanlı sunucu yönetim ve otomasyon aracı. 50+ sunucunuzda aynı anda kom
 - **Güvenli Bağlantı**: SSH üzerinden şifreli bağlantı
 - **Şifreleme**: Sunucu şifreleri AES-256 ile şifrelenir
 - **Sudo Desteği**: Sudo yetkisi gerektiren komutlar için otomatik şifre gönderimi
-
-### 🆕 Yeni Özellikler (v2.0)
-- **⏰ Görev Zamanlayıcı**: Cron-like periyodik görev çalıştırma
-- **💓 Health Monitoring**: Sunucu sağlık durumu izleme (CPU, RAM, Disk)
-- **📊 Metrik Toplama**: Otomatik sunucu metrik toplama ve raporlama
-- **🔔 Uyarı Sistemi**: Kritik durumlarda otomatik uyarılar
+- **Görev Zamanlayıcı**: Cron-like periyodik görev çalıştırma
+- **Health Monitoring**: Sunucu sağlık durumu izleme (CPU, RAM, Disk)
+- **Metrik Toplama**: Otomatik sunucu metrik toplama ve raporlama
+- **Uyarı Sistemi**: Kritik durumlarda otomatik uyarılar
 
 ## 📦 Kurulum
-
-### Docker ile Kurulumu
 
 ```bash
 # Windows için(İlk Önce Docker Desktop'ınızı açın.)
